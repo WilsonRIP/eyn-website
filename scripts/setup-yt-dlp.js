@@ -20,26 +20,41 @@ const ytDlpDir = path.join(rootDir, "yt-dlp");
 const ytDlpFilename = isWindows ? "yt-dlp.exe" : "yt-dlp";
 const ytDlpPath = path.join(ytDlpDir, ytDlpFilename);
 
+console.log(
+  `[setup-yt-dlp] Script started. Platform: ${platform}, CWD: ${rootDir}`
+);
+console.log(`[setup-yt-dlp] Target directory: ${ytDlpDir}`);
+console.log(`[setup-yt-dlp] Target binary path: ${ytDlpPath}`);
+
 // Ensure the directory exists
 if (!fs.existsSync(ytDlpDir)) {
-  fs.mkdirSync(ytDlpDir, { recursive: true });
-  console.log("Created yt-dlp directory");
+  try {
+    fs.mkdirSync(ytDlpDir, { recursive: true });
+    console.log(`[setup-yt-dlp] Created directory: ${ytDlpDir}`);
+  } catch (mkdirErr) {
+    console.error(
+      `[setup-yt-dlp] Failed to create directory ${ytDlpDir}:`,
+      mkdirErr
+    );
+    process.exit(1); // Exit if we can't create the dir
+  }
+} else {
+  console.log(`[setup-yt-dlp] Directory ${ytDlpDir} already exists.`);
 }
 
 // Function to check if Python3 is available
 function isPython3Available() {
+  console.log("[setup-yt-dlp] Checking for Python3...");
   try {
-    if (isWindows) {
-      // 'where' command might find python.exe even if python3 isn't specifically linked
-      // A more robust check might involve running 'python --version' or 'python3 --version'
-      execSync("where python3", { stdio: "ignore" });
-    } else {
-      execSync("which python3", { stdio: "ignore" });
-    }
-    console.log("Python3 seems to be available.");
+    let command = isWindows ? "where python3" : "which python3";
+    execSync(command, { stdio: "pipe" }); // Use pipe to capture output/error if needed, suppress logging
+    console.log(`[setup-yt-dlp] Python3 found via '${command}'.`);
     return true;
   } catch (e) {
-    console.log("Python3 does not seem to be available.");
+    console.log(
+      `[setup-yt-dlp] Python3 check failed (Command: '${isWindows ? "where python3" : "which python3"}'). Assuming not available.`
+    );
+    // console.error("[setup-yt-dlp] Python3 check error details:", e); // Optional: uncomment for more detail
     return false;
   }
 }
@@ -47,17 +62,28 @@ function isPython3Available() {
 // Function to download a file
 function downloadFile(url, dest) {
   return new Promise((resolve, reject) => {
+    console.log(`[setup-yt-dlp] Attempting to download ${url} to ${dest}`);
     const file = fs.createWriteStream(dest);
-    https
+    const request = https
       .get(url, (response) => {
         if (response.statusCode === 301 || response.statusCode === 302) {
-          // Handle redirects
-          downloadFile(response.headers.location, dest)
-            .then(resolve)
-            .catch(reject);
+          console.log(
+            `[setup-yt-dlp] Redirect detected. Following redirect to ${response.headers.location}`
+          );
+          // Ensure the file stream is closed before retrying
+          file.close(() => {
+            downloadFile(response.headers.location, dest)
+              .then(resolve)
+              .catch(reject);
+          });
           return;
         }
         if (response.statusCode !== 200) {
+          console.error(
+            `[setup-yt-dlp] Download failed! Status: ${response.statusCode} ${response.statusMessage}`
+          );
+          file.close();
+          fs.unlink(dest, () => {}); // Clean up partially downloaded file
           reject(
             new Error(
               `Failed to download file: ${response.statusCode} ${response.statusMessage}`
@@ -67,94 +93,163 @@ function downloadFile(url, dest) {
         }
         response.pipe(file);
         file.on("finish", () => {
-          file.close(resolve);
+          file.close((err) => {
+            if (err) {
+              console.error(
+                `[setup-yt-dlp] Error closing file stream for ${dest}:`,
+                err
+              );
+              reject(err);
+            } else {
+              console.log(
+                `[setup-yt-dlp] File downloaded successfully to ${dest}`
+              );
+              resolve();
+            }
+          });
         });
       })
       .on("error", (err) => {
-        fs.unlink(dest, () => {}); // Delete the file async
+        console.error(`[setup-yt-dlp] Download request error for ${url}:`, err);
+        fs.unlink(dest, () => {}); // Clean up
         reject(err);
       });
+    // Handle request timeout (e.g., 30 seconds)
+    request.setTimeout(30000, () => {
+      console.error("[setup-yt-dlp] Download request timed out.");
+      request.destroy(); // Destroy the request to prevent further processing
+      fs.unlink(dest, () => {}); // Clean up
+      reject(new Error("Download request timed out"));
+    });
   });
 }
 
 // Function to set execute permissions
 function setExecutePermission(filePath) {
+  if (!isLinux) {
+    console.log(
+      `[setup-yt-dlp] Skipping chmod on non-Linux platform for ${filePath}`
+    );
+    return;
+  }
   try {
+    console.log(
+      `[setup-yt-dlp] Attempting to set execute permission (chmod 755) for ${filePath}`
+    );
     fs.chmodSync(filePath, 0o755);
-    console.log(`Set execute permission for ${filePath}`);
+    console.log(
+      `[setup-yt-dlp] Successfully set execute permission for ${filePath}`
+    );
   } catch (e) {
-    console.error(`Error setting execute permission for ${filePath}:`, e);
+    console.error(
+      `[setup-yt-dlp] Error setting execute permission for ${filePath}:`,
+      e
+    );
   }
 }
 
 async function setupYtDlp() {
-  console.log(`Platform detected: ${platform}`);
+  console.log(`[setup-yt-dlp] Starting setup process...`);
 
   const pythonAvailable = isPython3Available();
+  let binaryExists = fs.existsSync(ytDlpPath);
+  console.log(
+    `[setup-yt-dlp] Initial check: Binary exists at ${ytDlpPath}? ${binaryExists}`
+  );
 
-  if (isLinux && !pythonAvailable) {
-    console.log(
-      "Python3 not found on Linux. Attempting to download static yt-dlp binary..."
-    );
-    try {
-      // Check if the target file already exists
-      if (fs.existsSync(ytDlpPath)) {
+  if (isLinux) {
+    if (!pythonAvailable) {
+      console.log(
+        "[setup-yt-dlp] Condition met: Linux platform and Python3 not found."
+      );
+      if (!binaryExists) {
         console.log(
-          `Static binary target path ${ytDlpPath} already exists. Assuming it's the correct static binary.`
+          `[setup-yt-dlp] Binary not found at ${ytDlpPath}. Attempting download...`
+        );
+        try {
+          await downloadFile(YTDLP_LINUX_STATIC_URL, ytDlpPath);
+          binaryExists = fs.existsSync(ytDlpPath);
+          console.log(
+            `[setup-yt-dlp] Post-download check: Binary exists at ${ytDlpPath}? ${binaryExists}`
+          );
+          if (binaryExists) {
+            setExecutePermission(ytDlpPath);
+          } else {
+            console.error(
+              "[setup-yt-dlp] CRITICAL: Binary still does not exist after download attempt!"
+            );
+          }
+        } catch (downloadError) {
+          console.error("[setup-yt-dlp] Download failed:", downloadError);
+        }
+      } else {
+        console.log(
+          `[setup-yt-dlp] Binary already exists at ${ytDlpPath}. Assuming it's the correct static version (or user-provided). Setting permissions.`
+        );
+        setExecutePermission(ytDlpPath);
+      }
+    } else {
+      console.log(
+        "[setup-yt-dlp] Condition met: Linux platform and Python3 IS available (or check failed)."
+      );
+      if (binaryExists) {
+        console.log(
+          `[setup-yt-dlp] Ensuring existing binary at ${ytDlpPath} has execute permission.`
         );
         setExecutePermission(ytDlpPath);
       } else {
-        await downloadFile(YTDLP_LINUX_STATIC_URL, ytDlpPath);
-        console.log(`Downloaded static yt-dlp binary to ${ytDlpPath}`);
-        setExecutePermission(ytDlpPath);
-      }
-      // Set environment variables just in case
-      process.env.NO_PYTHON = "1";
-      process.env.YT_DLP_NO_PYTHON = "1";
-      console.log("Environment variables set to disable Python dependency");
-    } catch (downloadError) {
-      console.error("Failed to download static yt-dlp binary:", downloadError);
-      console.error(
-        "Proceeding with potentially Python-dependent binary (if it exists)."
-      );
-      // Fallback: ensure existing binary (if any) is executable
-      if (fs.existsSync(ytDlpPath)) {
-        setExecutePermission(ytDlpPath);
+        console.warn(
+          `[setup-yt-dlp] WARNING: Python3 is available, but no yt-dlp binary found at ${ytDlpPath}. yt-dlp-wrap might fail.`
+        );
       }
     }
-  } else if (isLinux && fs.existsSync(ytDlpPath)) {
-    // Python is available OR binary already exists, just ensure permissions
-    console.log("Ensuring existing Linux yt-dlp binary is executable...");
-    setExecutePermission(ytDlpPath);
+    // Set environment variables regardless if Python isn't available, as a safeguard
+    if (!pythonAvailable) {
+      process.env.NO_PYTHON = "1";
+      process.env.YT_DLP_NO_PYTHON = "1";
+      console.log(
+        "[setup-yt-dlp] Environment variables set to potentially disable Python dependency"
+      );
+    }
   } else if (isWindows) {
     console.log(
-      "Windows platform detected. Assuming yt-dlp.exe exists and does not need permission changes."
+      `[setup-yt-dlp] Windows platform. Ensuring binary exists: ${binaryExists}. No permission changes needed.`
     );
+    if (!binaryExists) {
+      console.warn(
+        `[setup-yt-dlp] WARNING: Windows platform, but no yt-dlp binary found at ${ytDlpPath}. yt-dlp-wrap will likely fail.`
+      );
+    }
   }
 
   // Install optional dependencies needed for Linux deployment
   if (isLinux) {
     try {
-      console.log("Installing optional platform-specific dependencies...");
+      console.log(
+        "[setup-yt-dlp] Installing optional platform-specific dependencies (using --no-save)..."
+      );
       execSync(
         "npm install --no-save @tailwindcss/oxide-linux-x64-gnu@^4.1.5 lightningcss-linux-x64-gnu@^1.29.1 @img/sharp-linux-x64@^0.34.1",
-        {
-          stdio: "inherit",
-        }
+        { stdio: "inherit" }
       );
-      console.log("Platform-specific dependencies installed successfully");
+      console.log(
+        "[setup-yt-dlp] Platform-specific dependencies installed successfully."
+      );
     } catch (e) {
-      console.error("Error installing platform-specific dependencies:", e);
+      console.error(
+        "[setup-yt-dlp] Error installing platform-specific dependencies:",
+        e
+      );
       console.warn(
-        "Continuing build despite optional dependency installation failure."
+        "[setup-yt-dlp] Continuing build despite optional dependency installation failure."
       );
     }
   }
 
-  console.log("yt-dlp setup script finished.");
+  console.log("[setup-yt-dlp] Setup script finished.");
 }
 
 setupYtDlp().catch((err) => {
-  console.error("Error during yt-dlp setup:", err);
+  console.error("[setup-yt-dlp] Critical error during setup:", err);
   process.exit(1); // Exit with error code if setup fails
 });

@@ -9,15 +9,16 @@ let ytDlp: YtDlpWrap | null = null;
 try {
   // Initialize with the correct path based on OS
   const ytDlpPath = getYtDlpPath();
+  console.log("[api/download] Resolved ytDlpPath:", ytDlpPath);
 
   // Set environment variables to make yt-dlp not rely on Python
   process.env.NO_PYTHON = "1";
   process.env.YT_DLP_NO_PYTHON = "1";
 
   ytDlp = new YtDlpWrap(ytDlpPath);
-  console.log("yt-dlp initialized with path:", ytDlpPath);
+  console.log("[api/download] yt-dlp-wrap initialized successfully.");
 } catch (initErr: unknown) {
-  console.error("Failed to initialize yt-dlp-wrap:", initErr);
+  console.error("[api/download] Failed to initialize yt-dlp-wrap:", initErr);
 }
 
 export async function POST(request: NextRequest) {
