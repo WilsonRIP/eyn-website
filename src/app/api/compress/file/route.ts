@@ -38,6 +38,8 @@ function getMimeType(format: SupportedFormat): string {
   }
 }
 
+export const maxDuration = 60; // 1 minute in seconds (Vercel Hobby plan limit)
+
 export async function POST(request: Request) {
   // Create a unique working directory for this request
   const workDir = join(process.cwd(), "tmp", randomUUID());

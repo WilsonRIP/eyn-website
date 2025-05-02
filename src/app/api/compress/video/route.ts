@@ -37,7 +37,7 @@ function getResolutionParams(resolution: string): string {
   }
 }
 
-export const maxDuration = 300; // 5 minutes in seconds
+export const maxDuration = 60; // 1 minute in seconds (Vercel Hobby plan limit)
 
 export async function POST(request: Request) {
   // Create a unique working directory for this request
