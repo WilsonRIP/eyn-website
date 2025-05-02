@@ -13,6 +13,7 @@ import {
 import { Label } from "@/src/app/components/ui/label";
 import { Input } from "@/src/app/components/ui/input";
 import { Button } from "@/src/app/components/ui/button";
+import { Copy, Check } from "lucide-react";
 
 // Utility to convert RGB → HEX
 function rgbToHex(r: number, g: number, b: number) {
@@ -31,13 +32,13 @@ function randomHex() {
   return rgbToHex(rand(), rand(), rand());
 }
 
-// @ts-ignore: use the browser build entrypoint
-import Vibrant from "node-vibrant/browser";
-
+// We'll use a simpler approach without node-vibrant for now
 export default function ColorPage() {
   const [imageSrc, setImageSrc] = useState<string | null>(null);
   const [pickedColor, setPickedColor] = useState<string>("#FFFFFF");
   const [palette, setPalette] = useState<string[]>([]);
+  const [isExtracting, setIsExtracting] = useState<boolean>(false);
+  const [copiedColor, setCopiedColor] = useState<string | null>(null);
 
   const imgRef = useRef<HTMLImageElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -82,24 +83,56 @@ export default function ColorPage() {
     setPickedColor(rgbToHex(r, g, b));
   };
 
-  // Extract a palette using Vibrant
+  // Extract a palette using a simplified approach
+  // We'll sample colors from various points in the image
   const extractPalette = async () => {
-    if (!imageSrc) return;
+    if (!imageSrc || !canvasRef.current) return;
     try {
-      const raw: Record<string, any> =
-        await Vibrant.from(imageSrc).getPalette();
-      const colors = Object.values(raw)
-        .filter((sw): sw is any => sw != null)
-        .map((sw) => sw.getHex());
-      setPalette(colors);
+      setIsExtracting(true);
+
+      const canvas = canvasRef.current;
+      const ctx = canvas.getContext("2d")!;
+      const width = canvas.width;
+      const height = canvas.height;
+
+      // Sample colors from different parts of the image
+      const samplePoints = [
+        { x: Math.floor(width * 0.25), y: Math.floor(height * 0.25) },
+        { x: Math.floor(width * 0.75), y: Math.floor(height * 0.25) },
+        { x: Math.floor(width * 0.5), y: Math.floor(height * 0.5) },
+        { x: Math.floor(width * 0.25), y: Math.floor(height * 0.75) },
+        { x: Math.floor(width * 0.75), y: Math.floor(height * 0.75) },
+      ];
+
+      const colors = samplePoints.map((point) => {
+        const [r, g, b] = ctx.getImageData(point.x, point.y, 1, 1).data;
+        return rgbToHex(r, g, b);
+      });
+
+      // Filter out duplicate colors
+      const uniqueColors = [...new Set(colors)];
+      setPalette(uniqueColors);
     } catch (err) {
       console.error("Palette extraction failed:", err);
+    } finally {
+      setIsExtracting(false);
     }
   };
 
   // Generate a random palette of 5 colors
   const generateRandomPalette = () => {
     setPalette(Array.from({ length: 5 }, randomHex));
+  };
+
+  // Copy color to clipboard
+  const copyToClipboard = (color: string) => {
+    navigator.clipboard.writeText(color).then(() => {
+      setCopiedColor(color);
+      // Reset copied status after 2 seconds
+      setTimeout(() => {
+        setCopiedColor(null);
+      }, 2000);
+    });
   };
 
   return (
@@ -135,7 +168,20 @@ export default function ColorPage() {
                   className="w-8 h-8 border dark:border-gray-600"
                   style={{ backgroundColor: pickedColor }}
                 />
-                <span>{pickedColor}</span>
+                <div className="flex items-center space-x-2">
+                  <span>{pickedColor}</span>
+                  <button
+                    onClick={() => copyToClipboard(pickedColor)}
+                    className="p-1 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                    aria-label="Copy color code"
+                  >
+                    {copiedColor === pickedColor ? (
+                      <Check className="h-4 w-4 text-green-500" />
+                    ) : (
+                      <Copy className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
               </div>
             )}
           </section>
@@ -143,22 +189,38 @@ export default function ColorPage() {
           {/* Palette controls */}
           <section className="space-y-4">
             <div className="flex space-x-4">
-              <Button onClick={extractPalette} disabled={!imageSrc}>
-                Extract Palette
+              <Button
+                onClick={extractPalette}
+                disabled={!imageSrc || isExtracting}
+              >
+                {isExtracting ? "Extracting..." : "Extract Palette"}
               </Button>
               <Button onClick={generateRandomPalette}>Random Palette</Button>
             </div>
 
             {/* Display palette swatches */}
             {palette.length > 0 && (
-              <div className="flex space-x-2">
-                {palette.map((color) => (
-                  <div key={color} className="text-center">
+              <div className="flex flex-wrap gap-4 mt-4">
+                {palette.map((color, index) => (
+                  <div key={`${color}-${index}`} className="text-center">
                     <div
                       className="w-12 h-12 border dark:border-gray-600"
                       style={{ backgroundColor: color }}
                     />
-                    <div className="mt-1 text-xs">{color}</div>
+                    <div className="mt-1 flex items-center justify-center space-x-1">
+                      <span className="text-xs">{color}</span>
+                      <button
+                        onClick={() => copyToClipboard(color)}
+                        className="p-1 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                        aria-label="Copy color code"
+                      >
+                        {copiedColor === color ? (
+                          <Check className="h-3 w-3 text-green-500" />
+                        ) : (
+                          <Copy className="h-3 w-3" />
+                        )}
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -169,7 +231,7 @@ export default function ColorPage() {
         <CardFooter>
           <p className="text-sm text-muted-foreground">
             Click on the image to pick a color; use the buttons to extract or
-            generate palettes.
+            generate palettes. Click the copy icon to copy a color code.
           </p>
         </CardFooter>
       </Card>
