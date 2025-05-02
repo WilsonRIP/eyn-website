@@ -97,6 +97,6 @@
   "optionalDependencies": {
     "@tailwindcss/oxide-linux-x64-gnu": "^4.1.5",
     "lightningcss-linux-x64-gnu": "^1.29.1",
-    "sharp-linux-x64": "^0.34.1"
+    "@img/sharp-linux-x64": "^0.34.1"
   }
 }
