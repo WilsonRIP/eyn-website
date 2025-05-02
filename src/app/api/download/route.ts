@@ -9,6 +9,11 @@ let ytDlp: YtDlpWrap | null = null;
 try {
   // Initialize with the correct path based on OS
   const ytDlpPath = getYtDlpPath();
+
+  // Set environment variables to make yt-dlp not rely on Python
+  process.env.NO_PYTHON = "1";
+  process.env.YT_DLP_NO_PYTHON = "1";
+
   ytDlp = new YtDlpWrap(ytDlpPath);
   console.log("yt-dlp initialized with path:", ytDlpPath);
 } catch (initErr: unknown) {
