@@ -4,16 +4,33 @@ import path from "path";
 import fs from "fs";
 
 /**
- * Get the correct path to yt-dlp executable based on the OS
+ * Get the correct path to yt-dlp executable based on the OS.
+ * This needs to work in both local development and Vercel's runtime.
  */
 export function getYtDlpPath(): string {
   const isWindows = platform() === "win32";
-  const rootDir = process.cwd();
+  const rootDir = process.cwd(); // Keep for local Windows dev
 
   if (isWindows) {
-    return path.join(rootDir, "yt-dlp", "yt-dlp.exe");
+    // For local Windows development, assume it's in the project root's yt-dlp folder
+    const winPath = path.join(rootDir, "yt-dlp", "yt-dlp.exe");
+    // Add a check if it exists, maybe fallback? For now, assume it's there.
+    return winPath;
   } else {
-    return path.join(rootDir, "yt-dlp", "yt-dlp");
+    // For Linux/Vercel:
+    // __dirname points to the directory of the current module (.next/server/app/lib/ in build)
+    // We assume the 'yt-dlp' directory is copied to the root of the deployment (/var/task/)
+    // So, we need to go up from .next/server/app/lib/ to the root.
+    // path.resolve calculates the absolute path correctly.
+    // Adjust the number of '../' based on the actual build output structure if needed.
+    const linuxPath = path.resolve(__dirname, "../../../../yt-dlp/yt-dlp");
+
+    // Optional: Add a check and fallback or logging if needed
+    // if (!fs.existsSync(linuxPath)) {
+    //   console.warn(`[getYtDlpPath] Expected binary not found at: ${linuxPath}`);
+    //   // Potentially fallback to a globally installed path or throw an error
+    // }
+    return linuxPath;
   }
 }
 
