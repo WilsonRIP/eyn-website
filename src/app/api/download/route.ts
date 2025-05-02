@@ -3,10 +3,14 @@
 import { NextRequest, NextResponse } from "next/server";
 // @ts-ignore: no type declarations for yt-dlp-wrap
 import YtDlpWrap from "yt-dlp-wrap";
+import { getYtDlpPath } from "../../lib/yt-dlp";
 
 let ytDlp: YtDlpWrap | null = null;
 try {
-  ytDlp = new YtDlpWrap();
+  // Initialize with the correct path based on OS
+  const ytDlpPath = getYtDlpPath();
+  ytDlp = new YtDlpWrap(ytDlpPath);
+  console.log("yt-dlp initialized with path:", ytDlpPath);
 } catch (initErr: unknown) {
   console.error("Failed to initialize yt-dlp-wrap:", initErr);
 }

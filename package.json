@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "postinstall": "node -e \"const fs=require('fs');const path=require('path');const os=require('os');const isLinux=os.platform()!=='win32';if(isLinux){try{fs.chmodSync(path.join(process.cwd(),'yt-dlp/yt-dlp'),0o755);console.log('Made yt-dlp executable');}catch(e){console.error('Error making yt-dlp executable:',e);}}\""
   },
   "dependencies": {
     "@ffmpeg/core": "^0.12.10",
