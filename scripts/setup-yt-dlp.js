@@ -158,59 +158,57 @@ async function setupYtDlp() {
   );
 
   if (isLinux) {
-    if (!pythonAvailable) {
+    console.log("[setup-yt-dlp] Linux platform detected.");
+    // Always ensure the static binary exists on Linux for Vercel/serverless
+    if (!binaryExists) {
       console.log(
-        "[setup-yt-dlp] Condition met: Linux platform and Python3 not found."
+        `[setup-yt-dlp] Binary not found at ${ytDlpPath}. Attempting download of static Linux binary...`
       );
-      if (!binaryExists) {
+      try {
+        await downloadFile(YTDLP_LINUX_STATIC_URL, ytDlpPath);
+        binaryExists = fs.existsSync(ytDlpPath); // Re-check after download
         console.log(
-          `[setup-yt-dlp] Binary not found at ${ytDlpPath}. Attempting download...`
+          `[setup-yt-dlp] Post-download check: Binary exists at ${ytDlpPath}? ${binaryExists}`
         );
-        try {
-          await downloadFile(YTDLP_LINUX_STATIC_URL, ytDlpPath);
-          binaryExists = fs.existsSync(ytDlpPath);
-          console.log(
-            `[setup-yt-dlp] Post-download check: Binary exists at ${ytDlpPath}? ${binaryExists}`
+        if (!binaryExists) {
+          console.error(
+            "[setup-yt-dlp] CRITICAL: Binary still does not exist after download attempt!"
           );
-          if (binaryExists) {
-            setExecutePermission(ytDlpPath);
-          } else {
-            console.error(
-              "[setup-yt-dlp] CRITICAL: Binary still does not exist after download attempt!"
-            );
-          }
-        } catch (downloadError) {
-          console.error("[setup-yt-dlp] Download failed:", downloadError);
+          // Decide if you want to exit here or let the build continue potentially failing later
+          // process.exit(1);
         }
-      } else {
-        console.log(
-          `[setup-yt-dlp] Binary already exists at ${ytDlpPath}. Assuming it's the correct static version (or user-provided). Setting permissions.`
-        );
-        setExecutePermission(ytDlpPath);
+      } catch (downloadError) {
+        console.error("[setup-yt-dlp] Download failed:", downloadError);
+        // Decide if you want to exit here
+        // process.exit(1);
       }
     } else {
       console.log(
-        "[setup-yt-dlp] Condition met: Linux platform and Python3 IS available (or check failed)."
+        `[setup-yt-dlp] Binary already exists at ${ytDlpPath}. Skipping download.`
       );
-      if (binaryExists) {
-        console.log(
-          `[setup-yt-dlp] Ensuring existing binary at ${ytDlpPath} has execute permission.`
-        );
-        setExecutePermission(ytDlpPath);
-      } else {
-        console.warn(
-          `[setup-yt-dlp] WARNING: Python3 is available, but no yt-dlp binary found at ${ytDlpPath}. yt-dlp-wrap might fail.`
-        );
-      }
     }
-    // Set environment variables regardless if Python isn't available, as a safeguard
-    if (!pythonAvailable) {
-      process.env.NO_PYTHON = "1";
-      process.env.YT_DLP_NO_PYTHON = "1";
+
+    // Always ensure execute permissions if the binary exists (or was just downloaded)
+    if (binaryExists) {
       console.log(
-        "[setup-yt-dlp] Environment variables set to potentially disable Python dependency"
+        `[setup-yt-dlp] Ensuring binary at ${ytDlpPath} has execute permission.`
+      );
+      setExecutePermission(ytDlpPath);
+    }
+
+    // Optional: Log if Python was found, but we're using the static binary anyway
+    if (pythonAvailable) {
+      console.log(
+        "[setup-yt-dlp] Note: Python3 was detected, but we are prioritizing the static yt-dlp binary for consistency."
       );
     }
+
+    // Set environment variables as a safeguard for yt-dlp-wrap, though less critical now
+    process.env.NO_PYTHON = "1";
+    process.env.YT_DLP_NO_PYTHON = "1";
+    console.log(
+      "[setup-yt-dlp] Environment variables set to disable Python dependency in yt-dlp"
+    );
   } else if (isWindows) {
     console.log(
       `[setup-yt-dlp] Windows platform. Ensuring binary exists: ${binaryExists}. No permission changes needed.`
