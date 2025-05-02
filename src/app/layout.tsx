@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "@/src/app/styles/global.css"; // Corrected import path for global styles
 import { ThemeProvider } from "@/src/app/components/theme-provider"; // Corrected path alias
 import { Navbar } from "@/src/app/components/Navbar"; // Corrected path alias
+import { Footer } from "@/src/app/components/Footer"; // Added Footer import
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -26,7 +27,8 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <Navbar />
-          <main>{children}</main>
+          <main className="min-h-screen pt-14">{children}</main>
+          <Footer />
         </ThemeProvider>
       </body>
     </html>

@@ -1,4 +1,19 @@
 import React from "react";
+import Link from "next/link";
+import {
+  BadgeDollarSign,
+  Cpu,
+  Download,
+  FileDown,
+  FileType,
+  LayoutGrid,
+  MousePointerClick,
+  Palette,
+  QrCode,
+  Shield,
+  Upload,
+  UserCheck,
+} from "lucide-react";
 import {
   Card,
   CardContent,
@@ -8,29 +23,221 @@ import {
   CardTitle,
 } from "@/src/app/components/ui/card";
 import { Button } from "@/src/app/components/ui/button";
+import { Separator } from "@/src/app/components/ui/separator";
+import { features, benefits, howItWorks } from "@/src/app/data/features";
+import { WEBSITE_NAME } from "@/src/app/lib/types";
+
+// Helper function to render the right icon
+const IconComponent = ({
+  name,
+  className,
+}: {
+  name: string;
+  className?: string;
+}) => {
+  const iconProps = { className: className || "h-6 w-6" };
+
+  switch (name) {
+    case "Download":
+      return <Download {...iconProps} />;
+    case "FileType":
+      return <FileType {...iconProps} />;
+    case "FileDown":
+      return <FileDown {...iconProps} />;
+    case "QrCode":
+      return <QrCode {...iconProps} />;
+    case "Palette":
+      return <Palette {...iconProps} />;
+    case "LayoutGrid":
+      return <LayoutGrid {...iconProps} />;
+    case "BadgeDollarSign":
+      return <BadgeDollarSign {...iconProps} />;
+    case "Shield":
+      return <Shield {...iconProps} />;
+    case "UserCheck":
+      return <UserCheck {...iconProps} />;
+    case "MousePointerClick":
+      return <MousePointerClick {...iconProps} />;
+    case "Upload":
+      return <Upload {...iconProps} />;
+    case "Cpu":
+      return <Cpu {...iconProps} />;
+    default:
+      return <Download {...iconProps} />;
+  }
+};
 
 export default function HomePage() {
   return (
-    <main className="relative flex min-h-screen flex-col items-center justify-center p-4 md:p-24">
-      <div className="absolute top-6 right-6"></div>
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle className="text-3xl font-bold text-center">
-            EYN = Everything You Need
-          </CardTitle>
-          <CardDescription className="text-center pt-2">
-            Your one-stop destination.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <p className="text-center text-muted-foreground">
-            Explore the features and tools available.
+    <>
+      {/* Hero Section */}
+      <section className="relative py-20 px-4 md:py-32 bg-gradient-to-b from-background to-background/80">
+        <div className="mx-auto max-w-6xl">
+          <div className="flex flex-col items-center text-center">
+            <h1 className="text-4xl font-extrabold tracking-tight md:text-6xl lg:text-7xl">
+              <span>{WEBSITE_NAME}</span>{" "}
+              <span className="text-primary">Everything You Need</span>
+            </h1>
+            <p className="mt-6 max-w-2xl text-lg text-muted-foreground md:text-xl">
+              A collection of free, powerful online tools to help you with your
+              daily tasks. Download, convert, compress, generate - all in one
+              place.
+            </p>
+            <div className="mt-8 flex flex-wrap justify-center gap-4">
+              <Link href="/download">
+                <Button size="lg" className="rounded-full">
+                  Start Downloading
+                </Button>
+              </Link>
+              <Link href="#features">
+                <Button size="lg" variant="outline" className="rounded-full">
+                  Explore Features
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Features Section */}
+      <section id="features" className="py-16 px-4 bg-muted/50">
+        <div className="mx-auto max-w-6xl">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
+              Powerful Tools at Your Fingertips
+            </h2>
+            <p className="mt-4 text-muted-foreground">
+              Everything you need, all in one place, completely free
+            </p>
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {features.map((feature) => (
+              <Card
+                key={feature.id}
+                className="overflow-hidden transition-all hover:shadow-md"
+              >
+                <CardHeader className="pb-2">
+                  <div className="mb-2 inline-flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+                    <IconComponent
+                      name={feature.icon}
+                      className="h-5 w-5 text-primary"
+                    />
+                  </div>
+                  <CardTitle>{feature.title}</CardTitle>
+                  <CardDescription>{feature.description}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-2 text-sm">
+                    {feature.benefits.map((benefit, i) => (
+                      <li key={i} className="flex items-center">
+                        <div className="mr-2 h-1 w-1 rounded-full bg-primary"></div>
+                        <span className="text-muted-foreground">{benefit}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+                <CardFooter>
+                  <Link href={feature.url} className="w-full">
+                    <Button className="w-full" variant="outline">
+                      Try It Now
+                    </Button>
+                  </Link>
+                </CardFooter>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Benefits Section */}
+      <section className="py-16 px-4">
+        <div className="mx-auto max-w-6xl">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
+              Why Choose EYN?
+            </h2>
+            <p className="mt-4 text-muted-foreground">
+              We've designed our tools with simplicity and effectiveness in mind
+            </p>
+          </div>
+
+          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
+            {benefits.map((benefit, index) => (
+              <div
+                key={index}
+                className="flex flex-col items-center text-center"
+              >
+                <div className="mb-4 rounded-full bg-primary/10 p-3">
+                  <IconComponent
+                    name={benefit.icon}
+                    className="h-6 w-6 text-primary"
+                  />
+                </div>
+                <h3 className="mb-2 text-xl font-medium">{benefit.title}</h3>
+                <p className="text-sm text-muted-foreground">
+                  {benefit.description}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works Section */}
+      <section className="py-16 px-4 bg-muted/50">
+        <div className="mx-auto max-w-6xl">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
+              How It Works
+            </h2>
+            <p className="mt-4 text-muted-foreground">
+              Get your tasks done in just a few simple steps
+            </p>
+          </div>
+
+          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
+            {howItWorks.map((step) => (
+              <div
+                key={step.step}
+                className="relative flex flex-col items-center text-center"
+              >
+                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                  <span className="text-lg font-bold">{step.step}</span>
+                </div>
+                <h3 className="mb-2 text-xl font-medium">{step.title}</h3>
+                <p className="text-sm text-muted-foreground">
+                  {step.description}
+                </p>
+                {step.step < howItWorks.length && (
+                  <div className="hidden lg:block absolute top-6 left-[calc(50%+2rem)] w-[calc(100%-4rem)] h-0.5">
+                    <div className="h-full w-full bg-border"></div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-16 px-4">
+        <div className="mx-auto max-w-4xl text-center">
+          <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
+            Ready to Get Started?
+          </h2>
+          <p className="mt-4 text-lg text-muted-foreground">
+            Check out our tools and simplify your online tasks today
           </p>
-        </CardContent>
-        <CardFooter className="flex justify-center">
-          <Button>Learn More</Button>
-        </CardFooter>
-      </Card>
-    </main>
+          <div className="mt-8">
+            <Link href="/download">
+              <Button size="lg" className="rounded-full">
+                Start Now
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </section>
+    </>
   );
 }
