@@ -23,7 +23,7 @@ interface MultiFileUploadProps {
   accept?: string;
   maxSize?: number; // in MB
   maxFiles?: number;
-  onFilesChange: (files: FileList | null) => void;
+  onFilesChangeAction: (files: FileList | null) => void;
   disabled?: boolean;
   className?: string;
   error?: string;
@@ -37,7 +37,7 @@ export default function MultiFileUpload({
   accept = "*/*",
   maxSize = 100, // 100MB default
   maxFiles = 10,
-  onFilesChange,
+  onFilesChangeAction,
   disabled = false,
   className,
   error,
@@ -118,9 +118,9 @@ export default function MultiFileUpload({
 
     if (validFiles.length > 0) {
       const fileList = createFileList(validFiles);
-      onFilesChange(fileList);
+      onFilesChangeAction(fileList);
     }
-  }, [validateFiles, createFileList, onFilesChange]);
+  }, [validateFiles, createFileList, onFilesChangeAction]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = e.target.files;
@@ -156,15 +156,15 @@ export default function MultiFileUpload({
     fileArray.splice(index, 1);
     
     if (fileArray.length === 0) {
-      onFilesChange(null);
+      onFilesChangeAction(null);
     } else {
       const fileList = createFileList(fileArray);
-      onFilesChange(fileList);
+      onFilesChangeAction(fileList);
     }
   };
 
   const handleRemoveAllFiles = () => {
-    onFilesChange(null);
+    onFilesChangeAction(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }

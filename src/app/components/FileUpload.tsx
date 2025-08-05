@@ -22,7 +22,7 @@ interface FileUploadProps {
   label?: string;
   accept?: string;
   maxSize?: number; // in MB
-  onFileChange: (file: File | null) => void;
+  onFileChangeAction: (file: File | null) => void;
   disabled?: boolean;
   showPreview?: boolean;
   className?: string;
@@ -36,7 +36,7 @@ export default function FileUpload({
   label = "Upload File",
   accept = "*/*",
   maxSize = 100, // 100MB default
-  onFileChange,
+  onFileChangeAction,
   disabled = false,
   showPreview = false,
   className,
@@ -81,11 +81,11 @@ export default function FileUpload({
   const handleFileSelect = useCallback((selectedFile: File) => {
     const validationError = validateFile(selectedFile);
     if (validationError) {
-      onFileChange(null);
+      onFileChangeAction(null);
       return;
     }
 
-    onFileChange(selectedFile);
+    onFileChangeAction(selectedFile);
 
     // Create preview if enabled and file is an image
     if (showPreview && selectedFile.type.startsWith("image/")) {
@@ -94,7 +94,7 @@ export default function FileUpload({
     } else {
       setPreview(null);
     }
-  }, [validateFile, onFileChange, showPreview]);
+  }, [validateFile, onFileChangeAction, showPreview]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -124,7 +124,7 @@ export default function FileUpload({
   }, []);
 
   const handleRemoveFile = () => {
-    onFileChange(null);
+    onFileChangeAction(null);
     setPreview(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";

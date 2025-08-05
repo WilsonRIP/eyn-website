@@ -179,7 +179,7 @@ function ImageCompressor() {
           id="image-file"
           label="Select Image"
           accept="image/*"
-          onFileChange={handleFileChange}
+          onFileChangeAction={handleFileChange}
           disabled={isCompressing}
           showPreview={true}
           file={file}
@@ -351,7 +351,7 @@ function VideoCompressor() {
           id="video-file"
           label="Select Video"
           accept="video/*"
-          onFileChange={handleFileChange}
+          onFileChangeAction={handleFileChange}
           disabled={isCompressing}
           file={file}
           maxSize={500}
@@ -530,7 +530,7 @@ function AudioCompressor() {
           id="audio-file"
           label="Select Audio"
           accept="audio/*"
-          onFileChange={handleFileChange}
+          onFileChangeAction={handleFileChange}
           disabled={isCompressing}
           file={file}
           maxSize={100}
@@ -697,7 +697,7 @@ function FileCompressor() {
         <MultiFileUpload
           id="files"
           label="Select Files"
-          onFilesChange={handleFileChange}
+          onFilesChangeAction={handleFileChange}
           disabled={isCompressing}
           files={files}
           maxSize={100}

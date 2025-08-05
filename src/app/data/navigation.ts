@@ -23,6 +23,9 @@ export const mainNavLinks: NavigationLink[] = [
   { name: "Base64 Encoder/Decoder", url: "/base64" },
   { name: "Markdown Previewer", url: "/markdown" },
   { name: "URL Encoder/Decoder", url: "/url-encode" },
+  { name: "Password Generator", url: "/password" },
+  { name: "Hash Generator", url: "/hash" },
+  { name: "Word Counter", url: "/word-counter" },
 ];
 
 // Additional links for footer only

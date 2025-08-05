@@ -346,7 +346,7 @@ export default function ConvertPage() {
                   id="img-file"
                   label="Upload image"
                   accept={acceptMap.image}
-                  onFileChange={onFileChange}
+                  onFileChangeAction={onFileChange}
                   disabled={isConverting}
                   file={file}
                   maxSize={50}
@@ -426,7 +426,7 @@ export default function ConvertPage() {
                   id="vid-file"
                   label="Upload video"
                   accept={acceptMap.video}
-                  onFileChange={onFileChange}
+                  onFileChangeAction={onFileChange}
                   disabled={!isFFmpegReady || isConverting}
                   file={file}
                   maxSize={500}
@@ -516,7 +516,7 @@ export default function ConvertPage() {
                   id="aud-file"
                   label="Upload audio"
                   accept={acceptMap.audio}
-                  onFileChange={onFileChange}
+                  onFileChangeAction={onFileChange}
                   disabled={isConverting}
                   file={file}
                   maxSize={100}
