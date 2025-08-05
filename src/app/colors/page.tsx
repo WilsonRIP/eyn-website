@@ -136,8 +136,8 @@ export default function ColorPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4 dark:bg-gray-900">
-      <Card className="w-full max-w-2xl dark:bg-gray-800 dark:text-gray-100">
+    <div className="flex min-h-screen items-center justify-center p-4 animate-fade-in">
+      <Card className="w-full max-w-2xl card-enhanced">
         <CardHeader>
           <CardTitle>Color Picker &amp; Palette Generator</CardTitle>
           <CardDescription>
@@ -192,10 +192,11 @@ export default function ColorPage() {
               <Button
                 onClick={extractPalette}
                 disabled={!imageSrc || isExtracting}
+                className="btn-enhanced hover-lift"
               >
                 {isExtracting ? "Extracting..." : "Extract Palette"}
               </Button>
-              <Button onClick={generateRandomPalette}>Random Palette</Button>
+              <Button onClick={generateRandomPalette} className="btn-enhanced hover-lift">Random Palette</Button>
             </div>
 
             {/* Display palette swatches */}

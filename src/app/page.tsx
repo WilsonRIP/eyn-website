@@ -71,26 +71,26 @@ export default function HomePage() {
   return (
     <>
       {/* Hero Section */}
-      <section className="relative py-20 px-4 md:py-32 bg-gradient-to-b from-background to-background/80">
+      <section className="relative py-20 px-4 md:py-32 gradient-primary animate-fade-in">
         <div className="mx-auto max-w-6xl">
           <div className="flex flex-col items-center text-center">
-            <h1 className="text-4xl font-extrabold tracking-tight md:text-6xl lg:text-7xl">
+            <h1 className="text-4xl font-extrabold tracking-tight md:text-6xl lg:text-7xl animate-slide-in-left">
               <span>{WEBSITE_NAME}</span>{" "}
               <span className="text-primary">Everything You Need</span>
             </h1>
-            <p className="mt-6 max-w-2xl text-lg text-muted-foreground md:text-xl">
+            <p className="mt-6 max-w-2xl text-lg text-muted-foreground md:text-xl animate-slide-in-right">
               A collection of free, powerful online tools to help you with your
               daily tasks. Download, convert, compress, generate - all in one
               place.
             </p>
-            <div className="mt-8 flex flex-wrap justify-center gap-4">
+            <div className="mt-8 flex flex-wrap justify-center gap-4 animate-scale-in">
               <Link href="/download">
-                <Button size="lg" className="rounded-full">
+                <Button size="lg" className="rounded-full btn-enhanced hover-lift">
                   Start Downloading
                 </Button>
               </Link>
               <Link href="#features">
-                <Button size="lg" variant="outline" className="rounded-full">
+                <Button size="lg" variant="outline" className="rounded-full btn-enhanced hover-lift">
                   Explore Features
                 </Button>
               </Link>
@@ -100,7 +100,7 @@ export default function HomePage() {
       </section>
 
       {/* Features Section */}
-      <section id="features" className="py-16 px-4 bg-muted/50">
+      <section id="features" className="py-16 px-4 bg-muted/50 animate-fade-in">
         <div className="mx-auto max-w-6xl">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
@@ -115,7 +115,7 @@ export default function HomePage() {
             {features.map((feature) => (
               <Card
                 key={feature.id}
-                className="overflow-hidden transition-all hover:shadow-md"
+                className="card-enhanced overflow-hidden"
               >
                 <CardHeader className="pb-2">
                   <div className="mb-2 inline-flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
@@ -139,7 +139,7 @@ export default function HomePage() {
                 </CardContent>
                 <CardFooter>
                   <Link href={feature.url} className="w-full">
-                    <Button className="w-full" variant="outline">
+                    <Button className="w-full btn-enhanced hover-lift" variant="outline">
                       Try It Now
                     </Button>
                   </Link>
@@ -151,7 +151,7 @@ export default function HomePage() {
       </section>
 
       {/* Benefits Section */}
-      <section className="py-16 px-4">
+      <section className="py-16 px-4 animate-fade-in">
         <div className="mx-auto max-w-6xl">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
@@ -185,7 +185,7 @@ export default function HomePage() {
       </section>
 
       {/* How It Works Section */}
-      <section className="py-16 px-4 bg-muted/50">
+      <section className="py-16 px-4 bg-muted/50 animate-fade-in">
         <div className="mx-auto max-w-6xl">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold tracking-tight md:text-4xl">

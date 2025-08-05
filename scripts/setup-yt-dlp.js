@@ -26,6 +26,31 @@ console.log(
 console.log(`[setup-yt-dlp] Target directory: ${ytDlpDir}`);
 console.log(`[setup-yt-dlp] Target binary path: ${ytDlpPath}`);
 
+// --- Robust Directory Handling ---
+
+// Check if the target *directory* path exists and is a file
+try {
+  const stats = fs.existsSync(ytDlpDir) ? fs.statSync(ytDlpDir) : null;
+  if (stats && stats.isFile()) {
+    console.warn(
+      `[setup-yt-dlp] Path ${ytDlpDir} exists but is a file. Deleting it.`
+    );
+    fs.unlinkSync(ytDlpDir);
+  } else if (stats && !stats.isDirectory()) {
+    // Handle cases where it exists but isn't a directory or a file (e.g., socket, link - less likely here)
+    console.error(
+      `[setup-yt-dlp] Path ${ytDlpDir} exists but is not a directory. Cannot proceed.`
+    );
+    process.exit(1);
+  }
+} catch (statErr) {
+  console.error(
+    `[setup-yt-dlp] Error checking status of ${ytDlpDir}:`,
+    statErr
+  );
+  process.exit(1);
+}
+
 // Ensure the directory exists
 if (!fs.existsSync(ytDlpDir)) {
   try {
@@ -39,8 +64,10 @@ if (!fs.existsSync(ytDlpDir)) {
     process.exit(1); // Exit if we can't create the dir
   }
 } else {
-  console.log(`[setup-yt-dlp] Directory ${ytDlpDir} already exists.`);
+  // Now we know it exists and is a directory
+  console.log(`[setup-yt-dlp] Directory ${ytDlpDir} exists.`);
 }
+// --- End Robust Directory Handling ---
 
 // Function to check if Python3 is available
 function isPython3Available() {

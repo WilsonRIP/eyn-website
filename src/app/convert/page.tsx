@@ -44,6 +44,7 @@ import {
 import { toast } from "react-hot-toast";
 import { loadFFmpeg } from "@/src/lib/ffmpeg";
 import type { FFmpeg as FFmpegType } from "@ffmpeg/ffmpeg";
+import FileUpload from "@/src/app/components/FileUpload";
 
 /* -------------------------------------------------------------------------- */
 /*                           Types & configuration                            */
@@ -192,8 +193,8 @@ export default function ConvertPage() {
     if (tab === "video" && !isFFmpegReady) loadEngine();
   }, [tab, isFFmpegReady, loadEngine]);
 
-  const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFile(e.target.files?.[0] ?? null);
+  const onFileChange = (selectedFile: File | null) => {
+    setFile(selectedFile);
     setError(null);
     setOutputUrl(null);
     setOutputName(null);
@@ -316,8 +317,8 @@ export default function ConvertPage() {
   const formats = formatMap[tab];
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4 dark:bg-gray-900">
-      <Card className="w-full max-w-lg dark:bg-gray-800 dark:text-gray-100">
+    <div className="flex min-h-screen items-center justify-center p-4 animate-fade-in">
+      <Card className="w-full max-w-lg card-enhanced">
         <Tabs value={tab} onValueChange={(v) => setTab(v as ConversionType)}>
           <TabsList className="grid w-full grid-cols-3 mb-4">
             <TabsTrigger value="image">
@@ -341,13 +342,15 @@ export default function ConvertPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <Label htmlFor="img-file">Upload image</Label>
-                <Input
+                <FileUpload
                   id="img-file"
-                  type="file"
+                  label="Upload image"
                   accept={acceptMap.image}
-                  onChange={onFileChange}
+                  onFileChange={onFileChange}
                   disabled={isConverting}
+                  file={file}
+                  maxSize={50}
+                  placeholder="Choose an image file or drag it here"
                 />
                 <Label htmlFor="img-format">Convert to</Label>
                 <Select
@@ -376,7 +379,7 @@ export default function ConvertPage() {
                 <Button
                   type="submit"
                   disabled={!file || !format || isConverting}
-                  className="w-full"
+                  className="w-full btn-enhanced hover-lift"
                 >
                   {isConverting && (
                     <LoaderIcon className="mr-2 h-4 w-4 animate-spin" />
@@ -391,7 +394,7 @@ export default function ConvertPage() {
                         Animated GIFs become a single static frame.
                       </p>
                     )}
-                    <Button variant="outline" asChild className="w-full">
+                    <Button variant="outline" asChild className="w-full hover-lift">
                       <a href={outputUrl} download={outputName ?? "image"}>
                         <DownloadIcon className="mr-2 h-4 w-4" />
                         Download
@@ -401,7 +404,7 @@ export default function ConvertPage() {
                     <img
                       src={outputUrl}
                       alt="preview"
-                      className="mt-1 w-full rounded border dark:border-gray-600"
+                      className="mt-1 w-full rounded border animate-scale-in"
                     />
                   </>
                 )}
@@ -419,13 +422,15 @@ export default function ConvertPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <Label htmlFor="vid-file">Upload video</Label>
-                <Input
+                <FileUpload
                   id="vid-file"
-                  type="file"
+                  label="Upload video"
                   accept={acceptMap.video}
-                  onChange={onFileChange}
+                  onFileChange={onFileChange}
                   disabled={!isFFmpegReady || isConverting}
+                  file={file}
+                  maxSize={500}
+                  placeholder="Choose a video file or drag it here"
                 />
                 <Label htmlFor="vid-format">Convert to</Label>
                 <Select
@@ -466,7 +471,7 @@ export default function ConvertPage() {
                     isConverting ||
                     isFFmpegLoading
                   }
-                  className="w-full"
+                  className="w-full btn-enhanced hover-lift"
                 >
                   {isConverting && (
                     <LoaderIcon className="mr-2 h-4 w-4 animate-spin" />
@@ -478,7 +483,7 @@ export default function ConvertPage() {
                     <Button
                       variant="outline"
                       asChild
-                      className="w-full animate-pulse"
+                      className="w-full hover-lift animate-pulse-glow"
                     >
                       <a href={outputUrl} download={outputName ?? "video"}>
                         <DownloadIcon className="mr-2 h-4 w-4" />
@@ -489,7 +494,7 @@ export default function ConvertPage() {
                     <video
                       controls
                       src={outputUrl}
-                      className="mt-1 w-full rounded border dark:border-gray-600"
+                      className="mt-1 w-full rounded border animate-scale-in"
                     />
                   </>
                 )}
@@ -507,13 +512,15 @@ export default function ConvertPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <Label htmlFor="aud-file">Upload audio</Label>
-                <Input
+                <FileUpload
                   id="aud-file"
-                  type="file"
+                  label="Upload audio"
                   accept={acceptMap.audio}
-                  onChange={onFileChange}
+                  onFileChange={onFileChange}
                   disabled={isConverting}
+                  file={file}
+                  maxSize={100}
+                  placeholder="Choose an audio file or drag it here"
                 />
                 <Label htmlFor="aud-format">Convert to</Label>
                 <Select
@@ -548,7 +555,7 @@ export default function ConvertPage() {
                 <Button
                   type="submit"
                   disabled={!file || !format || isConverting}
-                  className="w-full"
+                  className="w-full btn-enhanced hover-lift"
                 >
                   {isConverting && (
                     <LoaderIcon className="mr-2 h-4 w-4 animate-spin" />
@@ -557,14 +564,14 @@ export default function ConvertPage() {
                 </Button>
                 {outputUrl && (
                   <>
-                    <Button variant="outline" asChild className="w-full">
+                    <Button variant="outline" asChild className="w-full hover-lift">
                       <a href={outputUrl} download={outputName ?? "audio"}>
                         <DownloadIcon className="mr-2 h-4 w-4" />
                         Download
                       </a>
                     </Button>
                     <Label>Preview</Label>
-                    <audio controls src={outputUrl} className="mt-1 w-full" />
+                    <audio controls src={outputUrl} className="mt-1 w-full animate-scale-in" />
                   </>
                 )}
               </CardFooter>

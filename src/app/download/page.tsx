@@ -136,7 +136,7 @@ export default function DownloadPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4">
+    <div className="flex min-h-screen items-center justify-center p-4 animate-fade-in">
       <div className="container mx-auto flex justify-center">
         <Tabs defaultValue="video" className="w-full max-w-2xl">
           <TabsList className="grid w-full grid-cols-5">
@@ -159,7 +159,7 @@ export default function DownloadPage() {
 
           {/* ── VIDEO TAB ─────────────────────────────────────────────────── */}
           <TabsContent value="video">
-            <Card className="w-full">
+            <Card className="w-full card-enhanced">
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
@@ -236,7 +236,7 @@ export default function DownloadPage() {
                 </CardContent>
                 <CardFooter>
                   <Button
-                    className="w-full"
+                    className="w-full btn-enhanced hover-lift"
                     disabled={isLoading || !url}
                     type="submit"
                   >
@@ -256,7 +256,7 @@ export default function DownloadPage() {
 
           {/* ── BATCH IMAGE TAB ───────────────────────────────────────────── */}
           <TabsContent value="batch-image">
-            <Card className="w-full">
+            <Card className="w-full card-enhanced">
               <CardHeader>
                 <CardTitle>Batch Image Download</CardTitle>
                 <CardDescription>
@@ -271,7 +271,7 @@ export default function DownloadPage() {
 
           {/* ── YOUTUBE THUMBNAILS TAB ────────────────────────────────────── */}
           <TabsContent value="youtube">
-            <Card className="w-full">
+            <Card className="w-full card-enhanced">
               <CardHeader>
                 <CardTitle>YouTube Thumbnails</CardTitle>
                 <CardDescription>
@@ -298,6 +298,7 @@ export default function DownloadPage() {
                 <Button
                   onClick={handleYoutubeGenerate}
                   disabled={!ytInput.trim()}
+                  className="btn-enhanced hover-lift"
                 >
                   Generate
                 </Button>
@@ -328,7 +329,7 @@ export default function DownloadPage() {
                                   `${ytId}_${v}.jpg`
                                 )
                               }
-                              className="mt-1"
+                              className="mt-1 hover-lift"
                             >
                               <DownloadIcon className="mr-1 h-4 w-4" />
                               Download
@@ -350,7 +351,7 @@ export default function DownloadPage() {
 
           {/* ── BULK MEDIA TAB ─────────────────────────────────────────────── */}
           <TabsContent value="bulk">
-            <Card className="w-full">
+            <Card className="w-full card-enhanced">
               <CardHeader>
                 <CardTitle>Bulk Media Downloader</CardTitle>
                 <CardDescription>
@@ -365,7 +366,7 @@ export default function DownloadPage() {
 
           {/* ── SITE COPIER TAB ─────────────────────────────────────────────── */}
           <TabsContent value="clone">
-            <Card className="w-full">
+            <Card className="w-full card-enhanced">
               <CardHeader>
                 <CardTitle>Website Copier</CardTitle>
                 <CardDescription>

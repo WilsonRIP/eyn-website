@@ -19,6 +19,10 @@ export const mainNavLinks: NavigationLink[] = [
   { name: "Compress", url: "/compress" },
   { name: "QR Code Generator", url: "/qr" },
   { name: "Color Palette Generator", url: "/colors" },
+  { name: "JSON Formatter", url: "/json" },
+  { name: "Base64 Encoder/Decoder", url: "/base64" },
+  { name: "Markdown Previewer", url: "/markdown" },
+  { name: "URL Encoder/Decoder", url: "/url-encode" },
 ];
 
 // Additional links for footer only

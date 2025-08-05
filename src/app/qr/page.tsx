@@ -81,8 +81,8 @@ export default function QRPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4 dark:bg-gray-900">
-      <Card className="w-full max-w-md dark:bg-gray-800 dark:text-gray-100">
+    <div className="flex min-h-screen items-center justify-center p-4 animate-fade-in">
+      <Card className="w-full max-w-md card-enhanced">
         <CardHeader>
           <CardTitle>QR Code Generator</CardTitle>
           <CardDescription>
@@ -190,7 +190,7 @@ export default function QRPage() {
                   type="button"
                   variant="outline"
                   onClick={handleDownload}
-                  className="mt-4"
+                  className="mt-4 btn-enhanced hover-lift"
                 >
                   <DownloadIcon className="mr-2 h-4 w-4" /> Download SVG
                 </Button>

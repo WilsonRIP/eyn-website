@@ -35,6 +35,8 @@ import {
   Download,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
+import FileUpload from "@/src/app/components/FileUpload";
+import MultiFileUpload from "@/src/app/components/MultiFileUpload";
 
 // Helper function to check if URL is valid
 const isValidUrl = (value: string) => {
@@ -48,7 +50,7 @@ const isValidUrl = (value: string) => {
 
 export default function CompressPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center p-4">
+    <div className="flex min-h-screen items-center justify-center p-4 animate-fade-in">
       <div className="container mx-auto flex justify-center">
         <Tabs defaultValue="image" className="w-full max-w-2xl">
           <TabsList className="grid w-full grid-cols-4">
@@ -94,7 +96,6 @@ export default function CompressPage() {
 // Image Compression Component
 function ImageCompressor() {
   const [file, setFile] = useState<File | null>(null);
-  const [preview, setPreview] = useState<string | null>(null);
   const [quality, setQuality] = useState(80);
   const [format, setFormat] = useState("jpg");
   const [isCompressing, setIsCompressing] = useState(false);
@@ -102,18 +103,11 @@ function ImageCompressor() {
   const [compressedFilename, setCompressedFilename] = useState<string | null>(
     null
   );
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0];
-    if (selectedFile) {
-      setFile(selectedFile);
-      // Create a preview
-      const previewUrl = URL.createObjectURL(selectedFile);
-      setPreview(previewUrl);
-      setCompressedUrl(null);
-      setCompressedFilename(null);
-    }
+  const handleFileChange = (selectedFile: File | null) => {
+    setFile(selectedFile);
+    setCompressedUrl(null);
+    setCompressedFilename(null);
   };
 
   const handleCompress = async () => {
@@ -173,7 +167,7 @@ function ImageCompressor() {
   };
 
   return (
-    <Card className="w-full">
+    <Card className="w-full card-enhanced">
       <CardHeader>
         <CardTitle>Image Compressor</CardTitle>
         <CardDescription>
@@ -181,26 +175,17 @@ function ImageCompressor() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="image-file">Select Image</Label>
-          <Input
-            id="image-file"
-            type="file"
-            accept="image/*"
-            onChange={handleFileChange}
-            ref={fileInputRef}
-            disabled={isCompressing}
-          />
-          {preview && (
-            <div className="mt-4 border rounded-md overflow-hidden">
-              <img
-                src={preview}
-                alt="Preview"
-                className="max-h-48 w-auto mx-auto object-contain"
-              />
-            </div>
-          )}
-        </div>
+        <FileUpload
+          id="image-file"
+          label="Select Image"
+          accept="image/*"
+          onFileChange={handleFileChange}
+          disabled={isCompressing}
+          showPreview={true}
+          file={file}
+          maxSize={50}
+          placeholder="Choose an image file or drag it here"
+        />
 
         <div className="space-y-2">
           <Label htmlFor="format">Output Format</Label>
@@ -249,7 +234,7 @@ function ImageCompressor() {
             </div>
             <Button
               variant="outline"
-              className="w-full"
+              className="w-full hover-lift"
               onClick={handleDownload}
             >
               <Download className="mr-2 h-4 w-4" />
@@ -260,7 +245,7 @@ function ImageCompressor() {
       </CardContent>
       <CardFooter>
         <Button
-          className="w-full"
+          className="w-full btn-enhanced hover-lift"
           onClick={handleCompress}
           disabled={!file || isCompressing}
         >
@@ -289,15 +274,11 @@ function VideoCompressor() {
   const [compressedFilename, setCompressedFilename] = useState<string | null>(
     null
   );
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0];
-    if (selectedFile) {
-      setFile(selectedFile);
-      setCompressedUrl(null);
-      setCompressedFilename(null);
-    }
+  const handleFileChange = (selectedFile: File | null) => {
+    setFile(selectedFile);
+    setCompressedUrl(null);
+    setCompressedFilename(null);
   };
 
   const handleCompress = async () => {
@@ -358,7 +339,7 @@ function VideoCompressor() {
   };
 
   return (
-    <Card className="w-full">
+    <Card className="w-full card-enhanced">
       <CardHeader>
         <CardTitle>Video Compressor</CardTitle>
         <CardDescription>
@@ -366,23 +347,16 @@ function VideoCompressor() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="video-file">Select Video</Label>
-          <Input
-            id="video-file"
-            type="file"
-            accept="video/*"
-            onChange={handleFileChange}
-            ref={fileInputRef}
-            disabled={isCompressing}
-          />
-          {file && (
-            <p className="text-sm text-muted-foreground">
-              Selected: {file.name} ({(file.size / (1024 * 1024)).toFixed(2)}{" "}
-              MB)
-            </p>
-          )}
-        </div>
+        <FileUpload
+          id="video-file"
+          label="Select Video"
+          accept="video/*"
+          onFileChange={handleFileChange}
+          disabled={isCompressing}
+          file={file}
+          maxSize={500}
+          placeholder="Choose a video file or drag it here"
+        />
 
         <div className="space-y-2">
           <Label htmlFor="format">Output Format</Label>
@@ -441,7 +415,7 @@ function VideoCompressor() {
             <Label>Compressed Video</Label>
             <Button
               variant="outline"
-              className="w-full"
+              className="w-full hover-lift"
               onClick={handleDownload}
             >
               <Download className="mr-2 h-4 w-4" />
@@ -452,7 +426,7 @@ function VideoCompressor() {
       </CardContent>
       <CardFooter>
         <Button
-          className="w-full"
+          className="w-full btn-enhanced hover-lift"
           onClick={handleCompress}
           disabled={!file || isCompressing}
         >
@@ -480,15 +454,11 @@ function AudioCompressor() {
   const [compressedFilename, setCompressedFilename] = useState<string | null>(
     null
   );
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0];
-    if (selectedFile) {
-      setFile(selectedFile);
-      setCompressedUrl(null);
-      setCompressedFilename(null);
-    }
+  const handleFileChange = (selectedFile: File | null) => {
+    setFile(selectedFile);
+    setCompressedUrl(null);
+    setCompressedFilename(null);
   };
 
   const handleCompress = async () => {
@@ -548,7 +518,7 @@ function AudioCompressor() {
   };
 
   return (
-    <Card className="w-full">
+    <Card className="w-full card-enhanced">
       <CardHeader>
         <CardTitle>Audio Compressor</CardTitle>
         <CardDescription>
@@ -556,23 +526,16 @@ function AudioCompressor() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="audio-file">Select Audio</Label>
-          <Input
-            id="audio-file"
-            type="file"
-            accept="audio/*"
-            onChange={handleFileChange}
-            ref={fileInputRef}
-            disabled={isCompressing}
-          />
-          {file && (
-            <p className="text-sm text-muted-foreground">
-              Selected: {file.name} ({(file.size / (1024 * 1024)).toFixed(2)}{" "}
-              MB)
-            </p>
-          )}
-        </div>
+        <FileUpload
+          id="audio-file"
+          label="Select Audio"
+          accept="audio/*"
+          onFileChange={handleFileChange}
+          disabled={isCompressing}
+          file={file}
+          maxSize={100}
+          placeholder="Choose an audio file or drag it here"
+        />
 
         <div className="space-y-2">
           <Label htmlFor="format">Output Format</Label>
@@ -618,7 +581,7 @@ function AudioCompressor() {
             </audio>
             <Button
               variant="outline"
-              className="w-full"
+              className="w-full hover-lift"
               onClick={handleDownload}
             >
               <Download className="mr-2 h-4 w-4" />
@@ -629,7 +592,7 @@ function AudioCompressor() {
       </CardContent>
       <CardFooter>
         <Button
-          className="w-full"
+          className="w-full btn-enhanced hover-lift"
           onClick={handleCompress}
           disabled={!file || isCompressing}
         >
@@ -657,15 +620,11 @@ function FileCompressor() {
   const [compressedFilename, setCompressedFilename] = useState<string | null>(
     null
   );
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFiles = e.target.files;
-    if (selectedFiles && selectedFiles.length > 0) {
-      setFiles(selectedFiles);
-      setCompressedUrl(null);
-      setCompressedFilename(null);
-    }
+  const handleFileChange = (selectedFiles: FileList | null) => {
+    setFiles(selectedFiles);
+    setCompressedUrl(null);
+    setCompressedFilename(null);
   };
 
   const handleCompress = async () => {
@@ -727,7 +686,7 @@ function FileCompressor() {
   };
 
   return (
-    <Card className="w-full">
+    <Card className="w-full card-enhanced">
       <CardHeader>
         <CardTitle>File Compressor</CardTitle>
         <CardDescription>
@@ -735,22 +694,16 @@ function FileCompressor() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="files">Select Files</Label>
-          <Input
-            id="files"
-            type="file"
-            multiple
-            onChange={handleFileChange}
-            ref={fileInputRef}
-            disabled={isCompressing}
-          />
-          {files && files.length > 0 && (
-            <p className="text-sm text-muted-foreground">
-              Selected {files.length} file(s)
-            </p>
-          )}
-        </div>
+        <MultiFileUpload
+          id="files"
+          label="Select Files"
+          onFilesChange={handleFileChange}
+          disabled={isCompressing}
+          files={files}
+          maxSize={100}
+          maxFiles={20}
+          placeholder="Choose files to compress or drag them here"
+        />
 
         <div className="space-y-2">
           <Label htmlFor="format">Archive Format</Label>
@@ -793,7 +746,7 @@ function FileCompressor() {
             <Label>Compressed Archive</Label>
             <Button
               variant="outline"
-              className="w-full"
+              className="w-full hover-lift"
               onClick={handleDownload}
             >
               <Download className="mr-2 h-4 w-4" />
@@ -804,7 +757,7 @@ function FileCompressor() {
       </CardContent>
       <CardFooter>
         <Button
-          className="w-full"
+          className="w-full btn-enhanced hover-lift"
           onClick={handleCompress}
           disabled={!files || files.length === 0 || isCompressing}
         >
