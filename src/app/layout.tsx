@@ -4,6 +4,8 @@ import "@/src/app/styles/global.css"; // Corrected import path for global styles
 import { ThemeProvider } from "@/src/app/components/theme-provider"; // Corrected path alias
 import { Navbar } from "@/src/app/components/Navbar"; // Corrected path alias
 import { Footer } from "@/src/app/components/Footer"; // Added Footer import
+import { AuthProvider } from "@/src/contexts/AuthContext";
+import { Toaster } from "react-hot-toast";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -26,9 +28,22 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <Navbar />
-          <main className="min-h-screen pt-14">{children}</main>
-          <Footer />
+          <AuthProvider>
+            <Navbar />
+            <main className="min-h-screen pt-14">{children}</main>
+            <Footer />
+            <Toaster 
+              position="top-right"
+              toastOptions={{
+                duration: 4000,
+                style: {
+                  background: 'hsl(var(--background))',
+                  color: 'hsl(var(--foreground))',
+                  border: '1px solid hsl(var(--border))',
+                },
+              }}
+            />
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>

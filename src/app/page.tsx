@@ -13,6 +13,12 @@ import {
   Shield,
   Upload,
   UserCheck,
+  Code,
+  Hash,
+  FileText,
+  Link as LinkIcon,
+  Key,
+  Calculator,
 } from "lucide-react";
 import {
   Card,
@@ -62,6 +68,18 @@ const IconComponent = ({
       return <Upload {...iconProps} />;
     case "Cpu":
       return <Cpu {...iconProps} />;
+    case "Code":
+      return <Code {...iconProps} />;
+    case "Hash":
+      return <Hash {...iconProps} />;
+    case "FileText":
+      return <FileText {...iconProps} />;
+    case "Link":
+      return <LinkIcon {...iconProps} />;
+    case "Key":
+      return <Key {...iconProps} />;
+    case "Calculator":
+      return <Calculator {...iconProps} />;
     default:
       return <Download {...iconProps} />;
   }
@@ -71,26 +89,26 @@ export default function HomePage() {
   return (
     <>
       {/* Hero Section */}
-      <section className="relative py-20 px-4 md:py-32 gradient-primary animate-fade-in">
+      <section className="relative py-20 px-4 md:py-32 bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 animate-fade-in">
         <div className="mx-auto max-w-6xl">
           <div className="flex flex-col items-center text-center">
-            <h1 className="text-4xl font-extrabold tracking-tight md:text-6xl lg:text-7xl animate-slide-in-left">
+            <h1 className="text-4xl font-extrabold tracking-tight md:text-6xl lg:text-7xl animate-slide-in-left text-white">
               <span>{WEBSITE_NAME}</span>{" "}
-              <span className="text-primary">Everything You Need</span>
+              <span className="text-blue-200">Everything You Need</span>
             </h1>
-            <p className="mt-6 max-w-2xl text-lg text-muted-foreground md:text-xl animate-slide-in-right">
+            <p className="mt-6 max-w-2xl text-lg text-blue-100 md:text-xl animate-slide-in-right">
               A collection of free, powerful online tools to help you with your
               daily tasks. Download, convert, compress, generate - all in one
               place.
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-4 animate-scale-in">
               <Link href="/download">
-                <Button size="lg" className="rounded-full btn-enhanced hover-lift">
+                <Button size="lg" className="rounded-full btn-enhanced hover-lift bg-white text-blue-700 hover:bg-blue-50 border-white">
                   Start Downloading
                 </Button>
               </Link>
               <Link href="#features">
-                <Button size="lg" variant="outline" className="rounded-full btn-enhanced hover-lift">
+                <Button size="lg" variant="outline" className="rounded-full btn-enhanced hover-lift text-white border-white hover:bg-white hover:text-blue-700">
                   Explore Features
                 </Button>
               </Link>

@@ -11,21 +11,62 @@ export interface NavigationGroup {
   links: NavigationLink[];
 }
 
-// Main navigation links used in both navbar and footer
+export interface NavigationCategory {
+  name: string;
+  items: NavigationLink[];
+}
+
+// Organized navigation categories for dropdown menus
+export const navigationCategories: NavigationCategory[] = [
+  {
+    name: "Media Tools",
+    items: [
+      { name: "Downloader", url: "/download" },
+      { name: "Convert", url: "/convert" },
+      { name: "Compress", url: "/compress" },
+    ]
+  },
+  {
+    name: "Generators",
+    items: [
+      { name: "QR Code Generator", url: "/qr" },
+      { name: "Password Generator", url: "/password" },
+      { name: "UUID Generator", url: "/uuid-generator" },
+      { name: "Lorem Ipsum Generator", url: "/lorem-ipsum" },
+    ]
+  },
+  {
+    name: "Color Tools",
+    items: [
+      { name: "Color Palette Generator", url: "/colors" },
+      { name: "Color Contrast Checker", url: "/color-contrast" },
+    ]
+  },
+  {
+    name: "Text Tools",
+    items: [
+      { name: "JSON Formatter", url: "/json" },
+      { name: "Base64 Encoder/Decoder", url: "/base64" },
+      { name: "Markdown Previewer", url: "/markdown" },
+      { name: "URL Encoder/Decoder", url: "/url-encode" },
+      { name: "Text Case Converter", url: "/text-case" },
+      { name: "Word Counter", url: "/word-counter" },
+      { name: "Regex Tester", url: "/regex-tester" },
+      { name: "Diff Checker", url: "/diff-checker" },
+    ]
+  },
+  {
+    name: "Security",
+    items: [
+      { name: "Hash Generator", url: "/hash" },
+    ]
+  }
+];
+
+// Flattened list for mobile menu and other uses
 export const mainNavLinks: NavigationLink[] = [
   { name: "Home", url: "/" },
-  { name: "Downloader", url: "/download" },
-  { name: "Convert", url: "/convert" },
-  { name: "Compress", url: "/compress" },
-  { name: "QR Code Generator", url: "/qr" },
-  { name: "Color Palette Generator", url: "/colors" },
-  { name: "JSON Formatter", url: "/json" },
-  { name: "Base64 Encoder/Decoder", url: "/base64" },
-  { name: "Markdown Previewer", url: "/markdown" },
-  { name: "URL Encoder/Decoder", url: "/url-encode" },
-  { name: "Password Generator", url: "/password" },
-  { name: "Hash Generator", url: "/hash" },
-  { name: "Word Counter", url: "/word-counter" },
+  ...navigationCategories.flatMap(category => category.items)
 ];
 
 // Additional links for footer only
