@@ -254,8 +254,8 @@ Alice Brown,28,Boston,alice@example.com`;
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div className="flex flex-wrap items-center gap-4">
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-medium">Format:</span>
                     <Select value={outputFormat} onValueChange={(value: "array" | "object") => setOutputFormat(value)}>
@@ -283,7 +283,7 @@ Alice Brown,28,Boston,alice@example.com`;
                     </div>
                   )}
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-shrink-0">
                   <Button
                     onClick={() => copyToClipboard(outputJSON)}
                     variant="outline"

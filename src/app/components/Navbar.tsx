@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Info, Github, Search, Menu, X, ChevronDown, User, LogOut } from "lucide-react";
+import { Home, Info, Github, Search, Menu, X, ChevronDown, User, LogOut, MoreHorizontal } from "lucide-react";
 import { cn } from "@/src/app/lib/utils";
 import { mainNavLinks, navigationCategories, NavigationLink } from "../data/navigation";
 import { WEBSITE_NAME } from "../lib/types";
@@ -24,8 +24,33 @@ export function Navbar() {
   const pathname = usePathname();
   const [searchOpen, setSearchOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [visibleCategories, setVisibleCategories] = useState<typeof navigationCategories>([]);
+  const [overflowCategories, setOverflowCategories] = useState<typeof navigationCategories>([]);
   const { user, signOut } = useAuth();
   const router = useRouter();
+
+  // Responsive category management
+  useEffect(() => {
+    const updateVisibleCategories = () => {
+      const screenWidth = window.innerWidth;
+      let maxVisible = 3; // Default for small screens
+
+      if (screenWidth >= 1280) { // xl screens
+        maxVisible = 6;
+      } else if (screenWidth >= 1024) { // lg screens
+        maxVisible = 5;
+      } else if (screenWidth >= 768) { // md screens
+        maxVisible = 4;
+      }
+
+      setVisibleCategories(navigationCategories.slice(0, maxVisible));
+      setOverflowCategories(navigationCategories.slice(maxVisible));
+    };
+
+    updateVisibleCategories();
+    window.addEventListener('resize', updateVisibleCategories);
+    return () => window.removeEventListener('resize', updateVisibleCategories);
+  }, []);
 
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
@@ -80,8 +105,8 @@ export function Navbar() {
               <span>Home</span>
             </Link>
 
-            {/* Category Dropdowns */}
-            {navigationCategories.map((category) => (
+            {/* Visible Category Dropdowns */}
+            {visibleCategories.map((category) => (
               <DropdownMenu key={category.name}>
                 <DropdownMenuTrigger asChild>
                   <Button
@@ -97,7 +122,7 @@ export function Navbar() {
                     <ChevronDown className="h-3 w-3" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-56">
+                <DropdownMenuContent align="start" className="w-56 max-h-96 overflow-y-auto">
                   {category.items.map((item) => (
                     <DropdownMenuItem key={item.url} asChild>
                       <Link
@@ -114,6 +139,43 @@ export function Navbar() {
                 </DropdownMenuContent>
               </DropdownMenu>
             ))}
+
+            {/* More Dropdown for Overflow Categories */}
+            {overflowCategories.length > 0 && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className="flex h-9 items-center gap-1.5 rounded-md px-3 text-sm font-medium transition-colors hover:bg-accent/50 text-foreground/70"
+                  >
+                    <MoreHorizontal className="h-4 w-4" />
+                    <span className="hidden lg:block">More</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-64 max-h-96 overflow-y-auto">
+                  {overflowCategories.map((category) => (
+                    <div key={category.name} className="px-2 py-1.5">
+                      <div className="px-2 py-1 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                        {category.name}
+                      </div>
+                      {category.items.map((item) => (
+                        <DropdownMenuItem key={item.url} asChild>
+                          <Link
+                            href={item.url}
+                            className={cn(
+                              "flex items-center gap-2 px-2 py-1.5 text-sm",
+                              pathname === item.url && "bg-accent"
+                            )}
+                          >
+                            <span>{item.name}</span>
+                          </Link>
+                        </DropdownMenuItem>
+                      ))}
+                    </div>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
 
             {/* Auth Links */}
             {user ? (

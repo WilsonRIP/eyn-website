@@ -19,11 +19,35 @@ export interface NavigationCategory {
 // Organized navigation categories for dropdown menus
 export const navigationCategories: NavigationCategory[] = [
   {
+    name: "AI Tools",
+    items: [
+      { name: "Image-to-Text OCR", url: "/ocr" },
+      { name: "ChatGPT Playground", url: "/chatgpt" },
+      { name: "Text Summarizer", url: "/summarize" },
+    ]
+  },
+  {
     name: "Media Tools",
     items: [
       { name: "Downloader", url: "/download" },
-      { name: "Convert", url: "/convert" },
+      { name: "Converter (Video, Audio, Image)", url: "/convert" },
       { name: "Compress", url: "/compress" },
+      { name: "SVG Optimizer", url: "/svg-optimizer" },
+    ]
+  },
+  {
+    name: "Productivity",
+    items: [
+      { name: "Pomodoro Timer", url: "/pomodoro" },
+      { name: "Habit Tracker", url: "/habit-tracker" },
+      { name: "Markdown Table Generator", url: "/md-table" },
+    ]
+  },
+  {
+    name: "Finance",
+    items: [
+      { name: "Currency Converter", url: "/currency" },
+      { name: "Tax Calculator", url: "/tax-calculator" },
     ]
   },
   {
@@ -56,8 +80,10 @@ export const navigationCategories: NavigationCategory[] = [
     ]
   },
   {
-    name: "Code Tools",
+    name: "Developer Utilities",
     items: [
+      { name: "HTTP Request Builder", url: "/http-request" },
+      { name: "Webhook Tester", url: "/webhook-tester" },
       { name: "CSS Formatter & Minifier", url: "/css-formatter" },
       { name: "YAML ↔ JSON Converter", url: "/yaml-converter" },
       { name: "CSV to JSON Converter", url: "/csv-to-json" },
@@ -68,6 +94,8 @@ export const navigationCategories: NavigationCategory[] = [
     items: [
       { name: "Hash Generator", url: "/hash" },
       { name: "JWT Decoder", url: "/jwt-decoder" },
+      { name: "Password Strength Meter", url: "/password-strength" },
+      { name: "XSS/SQLi Scanner", url: "/vulnerability-scanner" },
     ]
   }
 ];
