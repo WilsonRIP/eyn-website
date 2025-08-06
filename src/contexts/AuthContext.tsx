@@ -2,17 +2,25 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
-import { supabase, auth } from '@/src/lib/supabase';
+import { supabase, auth } from '@/src/lib/supabase-client';
 
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
   signUp: (email: string, password: string) => Promise<{ data: any; error: any }>;
+  signUpWithPhone: (phone: string, password: string) => Promise<{ data: any; error: any }>;
   signIn: (email: string, password: string) => Promise<{ data: any; error: any }>;
-  signInWithOAuth: (provider: 'google' | 'github' | 'discord') => Promise<{ data: any; error: any }>;
+  signInWithOAuth: (provider: 'google' | 'github' | 'discord' | 'facebook' | 'gitlab' | 'bitbucket') => Promise<{ data: any; error: any }>;
+  signInWithMagicLink: (email: string, options?: { shouldCreateUser?: boolean; emailRedirectTo?: string }) => Promise<{ data: any; error: any }>;
+  signInWithOtp: (email: string, options?: { shouldCreateUser?: boolean }) => Promise<{ data: any; error: any }>;
+  signInWithSmsOtp: (phone: string, options?: { shouldCreateUser?: boolean }) => Promise<{ data: any; error: any }>;
+  verifyOtp: (email: string, token: string, type?: 'email') => Promise<{ data: any; error: any }>;
+  verifySmsOtp: (phone: string, token: string) => Promise<{ data: any; error: any }>;
   signOut: () => Promise<{ error: any }>;
   resetPassword: (email: string) => Promise<{ data: any; error: any }>;
+  resendConfirmationEmail: (email: string) => Promise<{ data: any; error: any }>;
+  updateUser: (updates: { email?: string; password?: string; data?: any }) => Promise<{ data: any; error: any }>;
   updatePassword: (password: string) => Promise<{ data: any; error: any }>;
 }
 
@@ -51,10 +59,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     session,
     loading,
     signUp: auth.signUp,
+    signUpWithPhone: auth.signUpWithPhone,
     signIn: auth.signIn,
     signInWithOAuth: auth.signInWithOAuth,
+    signInWithMagicLink: auth.signInWithMagicLink,
+    signInWithOtp: auth.signInWithOtp,
+    signInWithSmsOtp: auth.signInWithSmsOtp,
+    verifyOtp: auth.verifyOtp,
+    verifySmsOtp: auth.verifySmsOtp,
     signOut: auth.signOut,
     resetPassword: auth.resetPassword,
+    resendConfirmationEmail: auth.resendConfirmationEmail,
+    updateUser: auth.updateUser,
     updatePassword: auth.updatePassword,
   };
 

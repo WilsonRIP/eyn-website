@@ -1,11 +1,12 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/src/app/components/ui/card";
 import { Button } from "@/src/app/components/ui/button";
 import { Badge } from "@/src/app/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/src/app/components/ui/avatar";
+import { Progress } from "@/src/app/components/ui/progress";
 import { 
   User, 
   Settings, 
@@ -21,15 +22,76 @@ import {
   Key,
   Calculator,
   Eye,
-  Type
+  Type,
+  Activity,
+  Clock,
+  TrendingUp,
+  Loader2
 } from "lucide-react";
 import { useAuth } from "@/src/contexts/AuthContext";
+import { databaseService, UserProfile, UserActivity, ToolStatistics } from "@/src/lib/database-service";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
 
 export default function DashboardPage() {
   const { user, signOut } = useAuth();
   const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [recentActivity, setRecentActivity] = useState<UserActivity[]>([]);
+  const [toolStats, setToolStats] = useState<ToolStatistics[]>([]);
+  const [userStats, setUserStats] = useState({
+    totalActivity: 0,
+    totalDownloads: 0,
+    totalFiles: 0,
+    totalPasswords: 0,
+    daysAsMember: 0
+  });
+
+  // Load user data on mount
+  useEffect(() => {
+    if (user) {
+      loadDashboardData();
+    }
+  }, [user]);
+
+  const loadDashboardData = async () => {
+    if (!user) return;
+    
+    setLoading(true);
+    try {
+      // Load profile data
+      const { data: profileData } = await databaseService.getProfile(user.id);
+      setProfile(profileData);
+
+      // Load recent activity
+      const { data: activityData } = await databaseService.getUserActivity(user.id, 5);
+      setRecentActivity(activityData || []);
+
+      // Load tool statistics
+      const { data: statsData } = await databaseService.getToolStatistics();
+      setToolStats(statsData || []);
+
+      // Calculate user stats
+      const daysAsMember = Math.floor((Date.now() - new Date(user.created_at).getTime()) / (1000 * 60 * 60 * 24));
+      
+      // Get user's specific stats
+      const userData = await databaseService.getUserData(user.id);
+      setUserStats({
+        totalActivity: userData.activity?.length || 0,
+        totalDownloads: userData.downloadHistory?.length || 0,
+        totalFiles: userData.fileUploads?.length || 0,
+        totalPasswords: userData.passwordHistory?.length || 0,
+        daysAsMember
+      });
+
+    } catch (error) {
+      console.error('Error loading dashboard data:', error);
+      toast.error('Failed to load dashboard data');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSignOut = async () => {
     try {
@@ -46,21 +108,118 @@ export default function DashboardPage() {
   };
 
   const tools = [
-    { name: "Media Downloader", icon: Download, url: "/download", description: "Download videos, images, and audio" },
-    { name: "File Converter", icon: FileType, url: "/convert", description: "Convert files between formats" },
-    { name: "File Compressor", icon: FileDown, url: "/compress", description: "Reduce file sizes" },
-    { name: "QR Code Generator", icon: QrCode, url: "/qr", description: "Create custom QR codes" },
-    { name: "Color Palette Generator", icon: Palette, url: "/colors", description: "Generate color palettes" },
-    { name: "JSON Formatter", icon: Code, url: "/json", description: "Format and validate JSON" },
-    { name: "Base64 Encoder/Decoder", icon: Code, url: "/base64", description: "Encode and decode Base64" },
-    { name: "Markdown Previewer", icon: FileText, url: "/markdown", description: "Real-time markdown editor" },
-    { name: "URL Encoder/Decoder", icon: Code, url: "/url-encode", description: "Encode and decode URLs" },
-    { name: "Password Generator", icon: Key, url: "/password", description: "Generate secure passwords" },
-    { name: "Hash Generator", icon: Hash, url: "/hash", description: "Generate file hashes" },
-    { name: "Word Counter", icon: Calculator, url: "/word-counter", description: "Analyze text statistics" },
-    { name: "Text Case Converter", icon: Type, url: "/text-case", description: "Convert text cases" },
-    { name: "Lorem Ipsum Generator", icon: FileText, url: "/lorem-ipsum", description: "Generate placeholder text" },
-    { name: "Color Contrast Checker", icon: Eye, url: "/color-contrast", description: "Check color accessibility" },
+    {
+      name: "Password Generator",
+      description: "Generate secure passwords and passphrases",
+      icon: Key,
+      url: "/password",
+      color: "text-blue-600",
+      bgColor: "bg-blue-100 dark:bg-blue-900/20"
+    },
+    {
+      name: "QR Code Generator",
+      description: "Create QR codes for URLs, text, WiFi, and more",
+      icon: QrCode,
+      url: "/qr",
+      color: "text-green-600",
+      bgColor: "bg-green-100 dark:bg-green-900/20"
+    },
+    {
+      name: "File Compressor",
+      description: "Compress images, videos, and files",
+      icon: FileDown,
+      url: "/compress",
+      color: "text-purple-600",
+      bgColor: "bg-purple-100 dark:bg-purple-900/20"
+    },
+    {
+      name: "File Converter",
+      description: "Convert files between different formats",
+      icon: FileType,
+      url: "/convert",
+      color: "text-orange-600",
+      bgColor: "bg-orange-100 dark:bg-orange-900/20"
+    },
+    {
+      name: "Bulk Downloader",
+      description: "Download multiple files at once",
+      icon: Download,
+      url: "/download",
+      color: "text-red-600",
+      bgColor: "bg-red-100 dark:bg-red-900/20"
+    },
+    {
+      name: "Color Tools",
+      description: "Color picker, contrast checker, and more",
+      icon: Palette,
+      url: "/colors",
+      color: "text-pink-600",
+      bgColor: "bg-pink-100 dark:bg-pink-900/20"
+    },
+    {
+      name: "Text Tools",
+      description: "Case converter, word counter, and more",
+      icon: Type,
+      url: "/text-case",
+      color: "text-indigo-600",
+      bgColor: "bg-indigo-100 dark:bg-indigo-900/20"
+    },
+    {
+      name: "Hash Generator",
+      description: "Generate MD5, SHA1, SHA256 hashes",
+      icon: Hash,
+      url: "/hash",
+      color: "text-teal-600",
+      bgColor: "bg-teal-100 dark:bg-teal-900/20"
+    },
+    {
+      name: "Base64 Converter",
+      description: "Encode and decode Base64 strings",
+      icon: Code,
+      url: "/base64",
+      color: "text-cyan-600",
+      bgColor: "bg-cyan-100 dark:bg-cyan-900/20"
+    },
+    {
+      name: "URL Encoder",
+      description: "Encode and decode URLs",
+      icon: Eye,
+      url: "/url-encode",
+      color: "text-emerald-600",
+      bgColor: "bg-emerald-100 dark:bg-emerald-900/20"
+    },
+    {
+      name: "JSON Formatter",
+      description: "Format and validate JSON data",
+      icon: FileText,
+      url: "/json",
+      color: "text-amber-600",
+      bgColor: "bg-amber-100 dark:bg-amber-900/20"
+    },
+    {
+      name: "Markdown Editor",
+      description: "Edit and preview Markdown content",
+      icon: FileText,
+      url: "/markdown",
+      color: "text-slate-600",
+      bgColor: "bg-slate-100 dark:bg-slate-900/20"
+    },
+    {
+      name: "Lorem Ipsum",
+      description: "Generate placeholder text",
+      icon: FileText,
+      url: "/lorem-ipsum",
+      color: "text-gray-600",
+      bgColor: "bg-gray-100 dark:bg-gray-900/20"
+    },
+    {
+      name: "Word Counter",
+      description: "Count words, characters, and more",
+      icon: Calculator,
+      url: "/word-counter",
+      color: "text-violet-600",
+      bgColor: "bg-violet-100 dark:bg-violet-900/20"
+    }
   ];
 
   if (!user) {
@@ -71,6 +230,17 @@ export default function DashboardPage() {
           <Link href="/auth/login">
             <Button className="btn-enhanced hover-lift">Sign In</Button>
           </Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto" />
+          <p>Loading dashboard...</p>
         </div>
       </div>
     );
@@ -91,13 +261,15 @@ export default function DashboardPage() {
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-3">
               <Avatar className="h-10 w-10">
-                <AvatarImage src={user.user_metadata?.avatar_url} />
+                <AvatarImage src={profile?.avatar_url || user.user_metadata?.avatar_url} />
                 <AvatarFallback>
-                  {user.email?.charAt(0).toUpperCase()}
+                  {profile?.display_name?.charAt(0) || user.email?.charAt(0).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
               <div className="hidden md:block">
-                <p className="font-medium">{user.user_metadata?.full_name || user.email}</p>
+                <p className="font-medium">
+                  {profile?.display_name || profile?.full_name || user.user_metadata?.full_name || user.email}
+                </p>
                 <p className="text-sm text-muted-foreground">{user.email}</p>
               </div>
             </div>
@@ -123,7 +295,7 @@ export default function DashboardPage() {
         </div>
 
         {/* User Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Card className="card-enhanced">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Account Status</CardTitle>
@@ -139,13 +311,26 @@ export default function DashboardPage() {
 
           <Card className="card-enhanced">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Available Tools</CardTitle>
-              <User className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium">Total Activities</CardTitle>
+              <Activity className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{tools.length}</div>
+              <div className="text-2xl font-bold">{userStats.totalActivity}</div>
               <p className="text-xs text-muted-foreground">
-                All tools unlocked
+                Tool usage tracked
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="card-enhanced">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Files Processed</CardTitle>
+              <FileText className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{userStats.totalFiles}</div>
+              <p className="text-xs text-muted-foreground">
+                Uploads and conversions
               </p>
             </CardContent>
           </Card>
@@ -153,73 +338,136 @@ export default function DashboardPage() {
           <Card className="card-enhanced">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Member Since</CardTitle>
-              <User className="h-4 w-4 text-muted-foreground" />
+              <Clock className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
-                {new Date(user.created_at).toLocaleDateString()}
-              </div>
+              <div className="text-2xl font-bold">{userStats.daysAsMember}</div>
               <p className="text-xs text-muted-foreground">
-                {Math.floor((Date.now() - new Date(user.created_at).getTime()) / (1000 * 60 * 60 * 24))} days ago
+                days ago
               </p>
             </CardContent>
           </Card>
         </div>
 
-        {/* Tools Grid */}
-        <div>
-          <h2 className="text-2xl font-bold mb-6">All Tools</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {tools.map((tool) => (
-              <Link key={tool.url} href={tool.url}>
-                <Card className="card-enhanced hover:shadow-lg transition-all duration-200 cursor-pointer group">
-                  <CardHeader className="pb-3">
+        {/* Recent Activity */}
+        {recentActivity.length > 0 && (
+          <Card className="card-enhanced">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Activity className="h-5 w-5" />
+                Recent Activity
+              </CardTitle>
+              <CardDescription>
+                Your latest tool usage and activities
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {recentActivity.map((activity) => (
+                  <div key={activity.id} className="flex items-center justify-between p-3 bg-muted rounded-lg">
                     <div className="flex items-center gap-3">
-                      <div className="p-2 bg-primary/10 rounded-lg group-hover:bg-primary/20 transition-colors">
-                        <tool.icon className="h-5 w-5 text-primary" />
+                      <div className="p-2 bg-primary/10 rounded-full">
+                        <Activity className="h-4 w-4 text-primary" />
                       </div>
-                      <CardTitle className="text-lg">{tool.name}</CardTitle>
+                      <div>
+                        <p className="font-medium capitalize">
+                          {activity.activity_type.replace(/_/g, ' ')}
+                        </p>
+                        {activity.tool_name && (
+                          <p className="text-sm text-muted-foreground">
+                            Tool: {activity.tool_name}
+                          </p>
+                        )}
+                      </div>
                     </div>
-                  </CardHeader>
-                  <CardContent>
-                    <CardDescription className="text-sm">
-                      {tool.description}
-                    </CardDescription>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
-          </div>
-        </div>
+                    <div className="text-sm text-muted-foreground">
+                      {new Date(activity.created_at).toLocaleDateString()}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
-        {/* Quick Actions */}
-        <div>
-          <h2 className="text-2xl font-bold mb-6">Quick Actions</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Link href="/download">
-              <Button className="w-full btn-enhanced hover-lift" variant="outline">
-                <Download className="h-4 w-4 mr-2" />
-                Download Media
-              </Button>
-            </Link>
-            <Link href="/convert">
-              <Button className="w-full btn-enhanced hover-lift" variant="outline">
-                <FileType className="h-4 w-4 mr-2" />
-                Convert Files
-              </Button>
-            </Link>
-            <Link href="/password">
-              <Button className="w-full btn-enhanced hover-lift" variant="outline">
-                <Key className="h-4 w-4 mr-2" />
-                Generate Password
-              </Button>
-            </Link>
-            <Link href="/colors">
-              <Button className="w-full btn-enhanced hover-lift" variant="outline">
-                <Palette className="h-4 w-4 mr-2" />
-                Create Palette
-              </Button>
-            </Link>
+        {/* Popular Tools */}
+        {toolStats.length > 0 && (
+          <Card className="card-enhanced">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5" />
+                Popular Tools
+              </CardTitle>
+              <CardDescription>
+                Most used tools by all users
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {toolStats.slice(0, 6).map((stat) => {
+                  const tool = tools.find(t => t.name.toLowerCase().includes(stat.tool_name.replace('-', ' ')));
+                  const IconComponent = tool?.icon || Activity;
+                  
+                  return (
+                    <div key={stat.id} className="flex items-center gap-3 p-3 bg-muted rounded-lg">
+                      <div className={`p-2 rounded-full ${tool?.bgColor || 'bg-gray-100 dark:bg-gray-900/20'}`}>
+                        <IconComponent className={`h-4 w-4 ${tool?.color || 'text-gray-600'}`} />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-medium text-sm">{stat.tool_name.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}</p>
+                        <p className="text-xs text-muted-foreground">{stat.usage_count} uses</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* All Tools */}
+        <div className="space-y-6">
+          <div>
+            <h2 className="text-2xl font-bold mb-4">All Tools</h2>
+            <p className="text-muted-foreground">
+              Access all available tools and utilities
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {tools.map((tool) => {
+              const IconComponent = tool.icon;
+              const toolStat = toolStats.find(stat => 
+                stat.tool_name === tool.name.toLowerCase().replace(/\s+/g, '-')
+              );
+              
+              return (
+                <Link key={tool.name} href={tool.url}>
+                  <Card className="card-enhanced hover:scale-105 transition-transform duration-200 cursor-pointer group">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center gap-3">
+                        <div className={`p-3 rounded-lg ${tool.bgColor} group-hover:scale-110 transition-transform duration-200`}>
+                          <IconComponent className={`h-6 w-6 ${tool.color}`} />
+                        </div>
+                        <div className="flex-1">
+                          <CardTitle className="text-lg">{tool.name}</CardTitle>
+                          {toolStat && (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {toolStat.usage_count} uses
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      <p className="text-sm text-muted-foreground">
+                        {tool.description}
+                      </p>
+                    </CardContent>
+                  </Card>
+                </Link>
+              );
+            })}
           </div>
         </div>
       </div>

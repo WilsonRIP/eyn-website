@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/src/lib/supabase";
+import { supabase } from "@/src/lib/supabase-client";
 import { toast } from "react-hot-toast";
 
 export default function AuthCallbackPage() {
