@@ -56,9 +56,18 @@ export const navigationCategories: NavigationCategory[] = [
     ]
   },
   {
+    name: "Code Tools",
+    items: [
+      { name: "CSS Formatter & Minifier", url: "/css-formatter" },
+      { name: "YAML ↔ JSON Converter", url: "/yaml-converter" },
+      { name: "CSV to JSON Converter", url: "/csv-to-json" },
+    ]
+  },
+  {
     name: "Security",
     items: [
       { name: "Hash Generator", url: "/hash" },
+      { name: "JWT Decoder", url: "/jwt-decoder" },
     ]
   }
 ];

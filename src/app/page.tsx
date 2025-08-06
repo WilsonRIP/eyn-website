@@ -19,6 +19,8 @@ import {
   Link as LinkIcon,
   Key,
   Calculator,
+  FileCode,
+  FileSpreadsheet,
 } from "lucide-react";
 import {
   Card,
@@ -80,6 +82,10 @@ const IconComponent = ({
       return <Key {...iconProps} />;
     case "Calculator":
       return <Calculator {...iconProps} />;
+    case "FileCode":
+      return <FileCode {...iconProps} />;
+    case "FileSpreadsheet":
+      return <FileSpreadsheet {...iconProps} />;
     default:
       return <Download {...iconProps} />;
   }

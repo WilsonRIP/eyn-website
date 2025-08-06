@@ -7,6 +7,7 @@ import { Textarea } from "@/src/app/components/ui/textarea";
 import { Badge } from "@/src/app/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/src/app/components/ui/tabs";
 import { Alert, AlertDescription } from "@/src/app/components/ui/alert";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/app/components/ui/select";
 import { Copy, Download, RotateCcw, CheckCircle, XCircle, AlertTriangle } from "lucide-react";
 
 export default function JSONFormatterPage() {
@@ -179,15 +180,16 @@ export default function JSONFormatterPage() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium">Indent Size:</span>
-                  <select
-                    value={indentSize}
-                    onChange={(e) => setIndentSize(Number(e.target.value))}
-                    className="px-2 py-1 border rounded text-sm"
-                  >
-                    <option value={2}>2 spaces</option>
-                    <option value={4}>4 spaces</option>
-                    <option value={8}>8 spaces</option>
-                  </select>
+                  <Select value={indentSize.toString()} onValueChange={(value) => setIndentSize(Number(value))}>
+                    <SelectTrigger className="w-[120px]">
+                      <SelectValue placeholder="Select size" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="2">2 spaces</SelectItem>
+                      <SelectItem value="4">4 spaces</SelectItem>
+                      <SelectItem value="8">8 spaces</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="flex gap-2">
                   <Button
