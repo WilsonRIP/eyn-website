@@ -46,7 +46,7 @@ The responsible development and deployment of AI requires collaboration between 
     setError("");
 
     try {
-      // Simulate processing with progress updates
+      // Simulate progress updates
       const simulateProgress = () => {
         const interval = setInterval(() => {
           setProgress(prev => {
@@ -62,35 +62,36 @@ The responsible development and deployment of AI requires collaboration between 
 
       const progressInterval = simulateProgress();
 
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Call Gemini API
+      const response = await fetch('/api/summarize', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          text: inputText,
+          length: summaryLength[0],
+          style: summaryStyle,
+        }),
+      });
 
-      // Generate mock summary based on input and settings
-      const summary = generateMockSummary(inputText, summaryLength[0], summaryStyle);
-      setSummarizedText(summary);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to summarize text');
+      }
+
+      const data = await response.json();
+      setSummarizedText(data.summary);
       setProgress(100);
       clearInterval(progressInterval);
     } catch (error) {
-      setError("Failed to summarize text. Please try again.");
+      setError(error instanceof Error ? error.message : "Failed to summarize text. Please try again.");
     } finally {
       setIsProcessing(false);
     }
   };
 
-  const generateMockSummary = (text: string, length: number, style: string): string => {
-    const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
-    const targetSentenceCount = Math.max(2, Math.floor(sentences.length * (length / 100)));
-    
-    let selectedSentences = sentences.slice(0, targetSentenceCount);
-    
-    if (style === "detailed") {
-      selectedSentences = sentences.slice(0, Math.min(targetSentenceCount + 2, sentences.length));
-    } else if (style === "bullet") {
-      return selectedSentences.map(sentence => `• ${sentence.trim()}`).join('\n');
-    }
-    
-    return selectedSentences.map(sentence => sentence.trim()).join('. ') + '.';
-  };
+
 
   const copyToClipboard = () => {
     if (summarizedText) {

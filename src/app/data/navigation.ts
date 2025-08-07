@@ -21,9 +21,12 @@ export const navigationCategories: NavigationCategory[] = [
   {
     name: "AI Tools",
     items: [
+      { name: "AI Chat Assistant", url: "/ai-chat" },
+      { name: "Text Summarizer", url: "/summarize" },
+      { name: "Code Explainer", url: "/code-explainer" },
+      { name: "Text Analyzer", url: "/text-analyzer" },
       { name: "Image-to-Text OCR", url: "/ocr" },
       { name: "ChatGPT Playground", url: "/chatgpt" },
-      { name: "Text Summarizer", url: "/summarize" },
     ]
   },
   {
