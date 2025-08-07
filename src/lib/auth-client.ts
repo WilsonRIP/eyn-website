@@ -1,58 +1,102 @@
-import { createClient } from "better-auth/client";
+import React from 'react';
 
-// Create the auth client
-export const authClient = createClient({
-  // Base URL for your API routes
-  baseURL: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
-  
-  // API routes configuration
-  apiRoutes: {
-    // Auth routes
-    signIn: "/api/auth/signin",
-    signUp: "/api/auth/signup",
-    signOut: "/api/auth/signout",
-    session: "/api/auth/session",
-    refresh: "/api/auth/refresh",
-    
-    // Social auth routes
-    social: "/api/auth/social",
-    
-    // Account management routes
-    linkSocial: "/api/auth/link-social",
-    unlinkAccount: "/api/auth/unlink-account",
-    deleteUser: "/api/auth/delete-user",
-    
-    // Password management routes
-    resetPassword: "/api/auth/reset-password",
-    setPassword: "/api/auth/set-password",
-    
-    // Email verification routes
-    verifyEmail: "/api/auth/verify-email",
-    resendVerification: "/api/auth/resend-verification",
+// Simple auth client that works with Better Auth API routes
+const baseURL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+
+export const authClient = {
+  // Session hook that fetches session data
+  useSession: () => {
+    const [data, setData] = React.useState(null);
+    const [isPending, setIsPending] = React.useState(true);
+    const [error, setError] = React.useState(null);
+
+    React.useEffect(() => {
+      fetch(`${baseURL}/api/auth/session`)
+        .then(res => res.json())
+        .then(data => {
+          setData(data);
+          setIsPending(false);
+        })
+        .catch(err => {
+          setError(err);
+          setIsPending(false);
+        });
+    }, []);
+
+    return { data, isPending, error, refetch: () => {} };
   },
-  
-  // Session configuration
-  session: {
-    // Session storage strategy
-    storage: "localStorage", // or "sessionStorage" or "cookie"
-    
-    // Session refresh configuration
-    refresh: {
-      enabled: true,
-      interval: 5 * 60 * 1000, // Refresh every 5 minutes
+
+  // Auth methods
+  signUp: {
+    email: async (params: any) => {
+      const res = await fetch(`${baseURL}/api/auth/signup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(params),
+      });
+      return res.json();
     },
   },
-  
-  // Callbacks for client-side events
-  callbacks: {
-    onSignIn: (user) => {
-      console.log("User signed in:", user.email);
+
+  signIn: {
+    email: async (params: any) => {
+      const res = await fetch(`${baseURL}/api/auth/signin`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(params),
+      });
+      return res.json();
     },
-    onSignOut: () => {
-      console.log("User signed out");
-    },
-    onSessionUpdate: (session) => {
-      console.log("Session updated:", session?.user?.email);
+    social: async (params: any) => {
+      const res = await fetch(`${baseURL}/api/auth/social`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(params),
+      });
+      return res.json();
     },
   },
-});
+
+  signOut: async () => {
+    const res = await fetch(`${baseURL}/api/auth/signout`, {
+      method: 'POST',
+    });
+    return res.json();
+  },
+
+  resetPassword: async (params: any) => {
+    const res = await fetch(`${baseURL}/api/auth/reset-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(params),
+    });
+    return res.json();
+  },
+
+  linkSocial: async (params: any) => {
+    const res = await fetch(`${baseURL}/api/auth/link-social`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(params),
+    });
+    return res.json();
+  },
+
+  unlinkAccount: async (params: any) => {
+    const res = await fetch(`${baseURL}/api/auth/unlink-account`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(params),
+    });
+    return res.json();
+  },
+
+  deleteUser: async (params?: any) => {
+    const res = await fetch(`${baseURL}/api/auth/delete-user`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(params),
+    });
+    return res.json();
+  },
+};

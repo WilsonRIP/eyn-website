@@ -24,7 +24,7 @@ import {
   Github,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { useBetterAuth } from "@/src/contexts/BetterAuthContext";
+// import { useBetterAuth } from "@/src/contexts/BetterAuthContext";
 import ThemeToggle from "./ThemeToggle";
 
 // Animated Nav Link for the sliding indicator effect
@@ -159,7 +159,8 @@ export function NavMenu() {
 
 // User Auth section
 export function UserNav({ handleSignOutAction }: { handleSignOutAction: () => void }) {
-  const { user } = useBetterAuth();
+  // const { user } = useBetterAuth();
+  const user: any = null; // Temporarily disable auth
 
   if (user) {
     return (
@@ -216,7 +217,8 @@ export function UserNav({ handleSignOutAction }: { handleSignOutAction: () => vo
 
 // Mobile Navigation with staggered animations
 export function MobileNav({ isOpen, closeMenuAction, handleSignOutAction }: { isOpen: boolean, closeMenuAction: () => void, handleSignOutAction: () => void }) {
-    const { user } = useBetterAuth();
+    // const { user } = useBetterAuth();
+    const user: any = null; // Temporarily disable auth
     const pathname = usePathname();
 
     const containerVariants: Variants = {

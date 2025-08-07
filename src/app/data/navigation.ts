@@ -105,6 +105,14 @@ export const navigationCategories: NavigationCategory[] = [
       { name: "Password Strength Meter", url: "/password-strength" },
       { name: "XSS/SQLi Scanner", url: "/vulnerability-scanner" },
     ]
+  },
+  {
+    name: "Math & Calculations",
+    items: [
+      { name: "Scientific Calculator", url: "/calculator" },
+      { name: "Unit Converter", url: "/unit-convert" },
+      { name: "Percentage Calculator", url: "/percentage" },
+    ]
   }
 ];
 

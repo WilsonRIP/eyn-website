@@ -490,6 +490,42 @@ export const features: Feature[] = [
       "Security best practices guidance",
     ],
   },
+  {
+    id: "calculator",
+    title: "Scientific Calculator",
+    description: "Advanced calculator with scientific functions and mathematical operations",
+    icon: "Calculator",
+    url: "/calculator",
+    benefits: [
+      "Basic arithmetic operations",
+      "Scientific functions (sin, cos, tan, log, ln)",
+      "Constants (π, e) and advanced operations",
+    ],
+  },
+  {
+    id: "unit-convert",
+    title: "Unit Converter",
+    description: "Convert between different units of measurement across multiple categories",
+    icon: "Ruler",
+    url: "/unit-convert",
+    benefits: [
+      "Length, weight, temperature, volume conversions",
+      "Area and speed unit conversions",
+      "Real-time conversion with swap functionality",
+    ],
+  },
+  {
+    id: "percentage",
+    title: "Percentage Calculator",
+    description: "Calculate percentages, discounts, and percentage changes with detailed formulas",
+    icon: "Percent",
+    url: "/percentage",
+    benefits: [
+      "Basic percentage calculations",
+      "Percentage of total and percentage change",
+      "Discount calculations and increase/decrease",
+    ],
+  },
 ];
 
 export const benefits = [

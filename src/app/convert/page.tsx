@@ -1,12 +1,6 @@
 "use client";
 
-import React, {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  FormEvent,
-} from "react";
+import React, { useCallback, useEffect, useState, FormEvent } from "react";
 import {
   Card,
   CardHeader,
@@ -16,7 +10,6 @@ import {
   CardFooter,
 } from "@/src/app/components/ui/card";
 import { Label } from "@/src/app/components/ui/label";
-import { Input } from "@/src/app/components/ui/input";
 import { Button } from "@/src/app/components/ui/button";
 import {
   Select,
@@ -42,8 +35,6 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
-import { loadFFmpeg } from "@/src/lib/ffmpeg";
-import type { FFmpeg as FFmpegType } from "@ffmpeg/ffmpeg";
 import FileUpload from "@/src/app/components/FileUpload";
 
 /* -------------------------------------------------------------------------- */
@@ -160,38 +151,15 @@ export default function ConvertPage() {
   const [progress, setProgress] = useState(0);
 
   const [isConverting, setIsConverting] = useState(false);
-  const [isFFmpegLoading, setIsFFmpegLoading] = useState(false);
-  const [isFFmpegReady, setIsFFmpegReady] = useState(false);
+  // client-side FFmpeg not used; conversions are server-side
 
   const [error, setError] = useState<string | null>(null);
   const [outputUrl, setOutputUrl] = useState<string | null>(null);
   const [outputName, setOutputName] = useState<string | null>(null);
 
-  const ffmpegRef = useRef<FFmpegType | null>(null);
-  const progressListenerRef = useRef<(() => void) | null>(null);
+  // removed FFmpeg refs
 
-  /* Load multithreaded FFmpeg-WASM if needed (for fallback video) */
-  const loadEngine = useCallback(async () => {
-    if (ffmpegRef.current || isFFmpegLoading) return;
-    setIsFFmpegLoading(true);
-    toast.loading("Loading FFmpeg…", { id: "ffmpeg-toast" });
-    try {
-      const ffmpeg = await loadFFmpeg();
-      ffmpegRef.current = ffmpeg;
-      setIsFFmpegReady(true);
-      toast.success("FFmpeg ready ✔", { id: "ffmpeg-toast" });
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : "Unknown error";
-      setError(msg);
-      toast.error(`Failed to load FFmpeg: ${msg}`, { id: "ffmpeg-toast" });
-    } finally {
-      setIsFFmpegLoading(false);
-    }
-  }, [isFFmpegLoading]);
-
-  useEffect(() => {
-    if (tab === "video" && !isFFmpegReady) loadEngine();
-  }, [tab, isFFmpegReady, loadEngine]);
+  // removed FFmpeg loader and auto-load effect
 
   const onFileChange = (selectedFile: File | null) => {
     setFile(selectedFile);
@@ -215,6 +183,38 @@ export default function ConvertPage() {
         return;
       }
 
+      const xhrUploadWithProgress = (
+        url: string,
+        form: FormData
+      ): Promise<Blob> =>
+        new Promise((resolve, reject) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open("POST", url, true);
+          xhr.responseType = "blob";
+          xhr.upload.onprogress = (evt) => {
+            if (evt.lengthComputable) {
+              const pct = Math.max(1, Math.min(99, Math.round((evt.loaded / evt.total) * 80)));
+              setProgress(pct);
+            }
+          };
+          xhr.onprogress = (evt) => {
+            if (evt.lengthComputable) {
+              const pct = 80 + Math.min(19, Math.round((evt.loaded / evt.total) * 19));
+              setProgress(pct);
+            }
+          };
+          xhr.onerror = () => reject(new Error("Network error"));
+          xhr.onload = () => {
+            if (xhr.status >= 200 && xhr.status < 300) {
+              setProgress(100);
+              resolve(xhr.response);
+            } else {
+              reject(new Error(`Server error ${xhr.status}`));
+            }
+          };
+          xhr.send(form);
+        });
+
       // ——— AUDIO via serverless endpoint ———
       if (tab === "audio") {
         setIsConverting(true);
@@ -224,12 +224,8 @@ export default function ConvertPage() {
         form.append("format", format);
 
         try {
-          const res = await fetch("/api/convert/audio", {
-            method: "POST",
-            body: form,
-          });
-          if (!res.ok) throw new Error(`Server error ${res.status}`);
-          const blob = await res.blob();
+          setProgress(0);
+          const blob = await xhrUploadWithProgress("/api/convert/audio", form);
           if (outputUrl) URL.revokeObjectURL(outputUrl);
           const url = URL.createObjectURL(blob);
           setOutputUrl(url);
@@ -242,6 +238,7 @@ export default function ConvertPage() {
           });
         } finally {
           setIsConverting(false);
+          setTimeout(() => setProgress(0), 500);
         }
         return;
       }
@@ -255,12 +252,8 @@ export default function ConvertPage() {
         form.append("format", format);
 
         try {
-          const res = await fetch("/api/convert/video", {
-            method: "POST",
-            body: form,
-          });
-          if (!res.ok) throw new Error(`Server error ${res.status}`);
-          const blob = await res.blob();
+          setProgress(0);
+          const blob = await xhrUploadWithProgress("/api/convert/video", form);
           if (outputUrl) URL.revokeObjectURL(outputUrl);
           const url = URL.createObjectURL(blob);
           setOutputUrl(url);
@@ -273,6 +266,7 @@ export default function ConvertPage() {
           });
         } finally {
           setIsConverting(false);
+          setTimeout(() => setProgress(0), 500);
         }
         return;
       }
@@ -427,7 +421,7 @@ export default function ConvertPage() {
                   label="Upload video"
                   accept={acceptMap.video}
                   onFileChangeAction={onFileChange}
-                  disabled={!isFFmpegReady || isConverting}
+                  disabled={isConverting}
                   file={file}
                   maxSize={500}
                   placeholder="Choose a video file or drag it here"
@@ -436,7 +430,7 @@ export default function ConvertPage() {
                 <Select
                   value={format}
                   onValueChange={onFormatChange}
-                  disabled={!isFFmpegReady || isConverting}
+                  disabled={isConverting}
                 >
                   <SelectTrigger id="vid-format">
                     <SelectValue placeholder="Select format" />
@@ -464,13 +458,7 @@ export default function ConvertPage() {
                 )}
                 <Button
                   type="submit"
-                  disabled={
-                    !file ||
-                    !format ||
-                    !isFFmpegReady ||
-                    isConverting ||
-                    isFFmpegLoading
-                  }
+                  disabled={!file || !format || isConverting}
                   className="w-full btn-enhanced hover-lift"
                 >
                   {isConverting && (

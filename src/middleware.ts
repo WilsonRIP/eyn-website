@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { auth } from '@/src/lib/auth';
 
 // Define protected routes
 const protectedRoutes = [
@@ -19,13 +18,10 @@ const authRoutes = [
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Get session from Better Auth
-  const session = await auth.api.getSession({
-    headers: request.headers,
-  });
-
-  // Check if user is authenticated
-  const isAuthenticated = !!session;
+  // Check for Better Auth session cookies
+  const sessionToken = request.cookies.get('better-auth.session-token')?.value;
+  const refreshToken = request.cookies.get('better-auth.refresh-token')?.value;
+  const isAuthenticated = !!(sessionToken || refreshToken);
 
   // Handle protected routes
   if (protectedRoutes.some(route => pathname.startsWith(route))) {

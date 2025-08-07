@@ -1,20 +1,22 @@
 import { betterAuth } from "better-auth";
-import { SupabaseAdapter } from "better-auth/adapters/supabase";
+import { Pool } from "pg";
 
-// Supabase configuration
-const supabaseUrl = process.env.SUPABASE_PUBLIC_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://eyn-website-supabase-229e2b-147-79-78-227.traefik.me';
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY;
+// Database configuration for Better Auth
+const databaseUrl = process.env.DATABASE_URL || 
+  `postgresql://postgres:${process.env.SUPABASE_DB_PASSWORD || 'your-password'}@supabasekong-yco4sw4w88cwwko8csgss8c4.147.79.78.227.sslip.io:5432/postgres`;
 
-if (!supabaseServiceKey) {
-  throw new Error("SUPABASE_SERVICE_ROLE_KEY is required for Better Auth");
+if (!databaseUrl) {
+  throw new Error("DATABASE_URL is required for Better Auth");
 }
 
 export const auth = betterAuth({
-  // Database adapter
-  adapter: SupabaseAdapter({
-    url: supabaseUrl,
-    secret: supabaseServiceKey,
+  // Database connection using PostgreSQL
+  database: new Pool({
+    connectionString: databaseUrl,
   }),
+
+  // Secret key for JWT signing
+  secret: process.env.BETTER_AUTH_SECRET || process.env.AUTH_SECRET || "your-secret-key",
 
   // Email and password authentication
   emailAndPassword: {

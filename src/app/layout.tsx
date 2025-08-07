@@ -4,7 +4,7 @@ import "@/src/app/styles/global.css"; // Corrected import path for global styles
 import { ThemeProvider } from "@/src/app/components/theme-provider"; // Corrected path alias
 import { Navbar } from "@/src/app/components/Navbar"; // Corrected path alias
 import { Footer } from "@/src/app/components/Footer"; // Added Footer import
-import { BetterAuthProvider } from "@/src/contexts/BetterAuthContext";
+// import { BetterAuthProvider } from "@/src/contexts/BetterAuthContext";
 import { Toaster } from "react-hot-toast";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -28,7 +28,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <BetterAuthProvider>
+          {/* <BetterAuthProvider> */}
             <Navbar />
             <main className="min-h-screen pt-14">{children}</main>
             <Footer />
@@ -43,7 +43,7 @@ export default function RootLayout({
                 },
               }}
             />
-          </BetterAuthProvider>
+          {/* </BetterAuthProvider> */}
         </ThemeProvider>
       </body>
     </html>
