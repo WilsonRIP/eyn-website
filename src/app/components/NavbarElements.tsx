@@ -24,7 +24,7 @@ import {
   Github,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { useAuth } from "@/src/contexts/AuthContext";
+import { useBetterAuth } from "@/src/contexts/BetterAuthContext";
 import ThemeToggle from "./ThemeToggle";
 
 // Animated Nav Link for the sliding indicator effect
@@ -159,7 +159,7 @@ export function NavMenu() {
 
 // User Auth section
 export function UserNav({ handleSignOutAction }: { handleSignOutAction: () => void }) {
-  const { user } = useAuth();
+  const { user } = useBetterAuth();
 
   if (user) {
     return (
@@ -167,7 +167,7 @@ export function UserNav({ handleSignOutAction }: { handleSignOutAction: () => vo
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="relative h-9 w-9 rounded-full">
             <Avatar className="h-8 w-8">
-              <AvatarImage src={user.user_metadata?.avatar_url} alt="User Avatar" />
+              <AvatarImage src={user.image || undefined} alt="User Avatar" />
               <AvatarFallback>
                 {user.email?.charAt(0).toUpperCase()}
               </AvatarFallback>
@@ -178,7 +178,7 @@ export function UserNav({ handleSignOutAction }: { handleSignOutAction: () => vo
           <DropdownMenuLabel className="font-normal">
             <div className="flex flex-col space-y-1">
               <p className="text-sm font-medium leading-none">
-                {user.user_metadata?.full_name || "User"}
+                {user.name || "User"}
               </p>
               <p className="text-xs leading-none text-muted-foreground">
                 {user.email}
@@ -216,7 +216,7 @@ export function UserNav({ handleSignOutAction }: { handleSignOutAction: () => vo
 
 // Mobile Navigation with staggered animations
 export function MobileNav({ isOpen, closeMenuAction, handleSignOutAction }: { isOpen: boolean, closeMenuAction: () => void, handleSignOutAction: () => void }) {
-    const { user } = useAuth();
+    const { user } = useBetterAuth();
     const pathname = usePathname();
 
     const containerVariants: Variants = {

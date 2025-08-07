@@ -7,7 +7,7 @@ import { toast } from "react-hot-toast";
 import { Menu, X, Search, Github, Home } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { WEBSITE_NAME } from "../lib/types";
-import { useAuth } from "@/src/contexts/AuthContext";
+import { useBetterAuth } from "@/src/contexts/BetterAuthContext";
 import { Button } from "./ui/button";
 import { SearchDialog } from "./SearchDialog";
 import ThemeToggle from "./ThemeToggle";
@@ -21,7 +21,7 @@ import {
 export function Navbar() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { signOut } = useAuth();
+  const { signOut } = useBetterAuth();
   const router = useRouter();
 
   const handleSignOut = async () => {
