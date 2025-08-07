@@ -68,7 +68,7 @@ export default function RegexTesterPage() {
     }
   };
 
-  const replaceText = () => {
+  const performReplace = () => {
     if (!regex.trim() || !replaceText.trim()) {
       setErrorMessage("Please enter both regex and replacement text");
       return;
@@ -344,7 +344,7 @@ export default function RegexTesterPage() {
               </div>
               <div className="flex items-end">
                 <Button 
-                  onClick={replaceText} 
+                                      onClick={performReplace} 
                   className="btn-enhanced hover-lift"
                   disabled={!regex.trim() || !replaceText.trim()}
                 >

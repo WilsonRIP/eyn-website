@@ -33,6 +33,7 @@ export const navigationCategories: NavigationCategory[] = [
       { name: "Converter (Video, Audio, Image)", url: "/convert" },
       { name: "Compress", url: "/compress" },
       { name: "SVG Optimizer", url: "/svg-optimizer" },
+      { name: "Metadata Editor", url: "/metadata-editor" },
     ]
   },
   {
@@ -64,6 +65,7 @@ export const navigationCategories: NavigationCategory[] = [
     items: [
       { name: "Color Palette Generator", url: "/colors" },
       { name: "Color Contrast Checker", url: "/color-contrast" },
+      { name: "Color Converter", url: "/color-converter" },
     ]
   },
   {
@@ -77,6 +79,9 @@ export const navigationCategories: NavigationCategory[] = [
       { name: "Word Counter", url: "/word-counter" },
       { name: "Regex Tester", url: "/regex-tester" },
       { name: "Diff Checker", url: "/diff-checker" },
+      { name: "Sentiment Analyzer", url: "/sentiment-analyzer" },
+      { name: "Slug Generator", url: "/slug-generator" },
+      { name: "Keyword Extractor", url: "/keyword-extractor" },
     ]
   },
   {

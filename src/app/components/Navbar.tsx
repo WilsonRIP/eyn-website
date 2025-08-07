@@ -1,379 +1,122 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { Home, Info, Github, Search, Menu, X, ChevronDown, User, LogOut, MoreHorizontal } from "lucide-react";
-import { cn } from "@/src/app/lib/utils";
-import { mainNavLinks, navigationCategories, NavigationLink } from "../data/navigation";
-import { WEBSITE_NAME } from "../lib/types";
-import { SearchDialog } from "./SearchDialog";
-import { Button } from "./ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "./ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { useAuth } from "@/src/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
+import { Menu, X, Search, Github, Home } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { WEBSITE_NAME } from "../lib/types";
+import { useAuth } from "@/src/contexts/AuthContext";
+import { Button } from "./ui/button";
+import { SearchDialog } from "./SearchDialog";
+import ThemeToggle from "./ThemeToggle";
+import {
+  AnimatedNavLink,
+  NavMenu,
+  UserNav,
+  MobileNav,
+} from "./NavbarElements";
 
 export function Navbar() {
-  const pathname = usePathname();
   const [searchOpen, setSearchOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [visibleCategories, setVisibleCategories] = useState<typeof navigationCategories>([]);
-  const [overflowCategories, setOverflowCategories] = useState<typeof navigationCategories>([]);
-  const { user, signOut } = useAuth();
+  const { signOut } = useAuth();
   const router = useRouter();
-
-  // Responsive category management
-  useEffect(() => {
-    const updateVisibleCategories = () => {
-      const screenWidth = window.innerWidth;
-      let maxVisible = 3; // Default for small screens
-
-      if (screenWidth >= 1280) { // xl screens
-        maxVisible = 6;
-      } else if (screenWidth >= 1024) { // lg screens
-        maxVisible = 5;
-      } else if (screenWidth >= 768) { // md screens
-        maxVisible = 4;
-      }
-
-      setVisibleCategories(navigationCategories.slice(0, maxVisible));
-      setOverflowCategories(navigationCategories.slice(maxVisible));
-    };
-
-    updateVisibleCategories();
-    window.addEventListener('resize', updateVisibleCategories);
-    return () => window.removeEventListener('resize', updateVisibleCategories);
-  }, []);
-
-  const toggleMobileMenu = () => {
-    setMobileMenuOpen(!mobileMenuOpen);
-  };
 
   const handleSignOut = async () => {
     try {
       const { error } = await signOut();
-      if (error) {
-        toast.error(error.message);
-      } else {
-        toast.success("Successfully signed out");
-        router.push("/");
-      }
-    } catch (error) {
-      toast.error("An unexpected error occurred");
+      if (error) throw error;
+      toast.success("Successfully signed out!");
+      router.push("/");
+    } catch (error: any) {
+      toast.error(error.message || "An unexpected error occurred during sign out.");
     }
   };
 
+  const toggleMobileMenu = () => setMobileMenuOpen((prev) => !prev);
+  const closeMobileMenu = () => setMobileMenuOpen(false);
+
   return (
-    <header className="fixed top-0 left-0 right-0 z-10 border-b bg-background/90 backdrop-blur-md">
-      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
-        <Link href="/" className="flex items-center space-x-2">
-          <span className="font-bold text-xl">{WEBSITE_NAME}</span>
-        </Link>
-
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label="Search"
-            onClick={() => setSearchOpen(true)}
-            className="h-9 w-9 p-0"
-          >
-            <Search className="h-4 w-4" />
-          </Button>
-          <SearchDialog open={searchOpen} setOpen={setSearchOpen} />
-
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-1">
-            {/* Home Link */}
-            <Link
-              href="/"
-              className={cn(
-                "flex h-9 items-center gap-1.5 rounded-md px-3 text-sm font-medium transition-colors hover:bg-accent/50",
-                pathname === "/"
-                  ? "bg-accent text-accent-foreground"
-                  : "text-foreground/70"
-              )}
-            >
-              <Home className="h-4 w-4" />
-              <span>Home</span>
+    <>
+      <header className="fixed top-0 left-0 right-0 z-50 border-b bg-background/80 backdrop-blur-md">
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+          {/* Left Section: Logo & Main Navigation */}
+          <div className="flex items-center gap-6">
+            <Link href="/" className="flex items-center space-x-2" onClick={closeMobileMenu}>
+              {/* Optional: Add an icon or logo here */}
+              <span className="font-bold text-lg">{WEBSITE_NAME}</span>
             </Link>
 
-            {/* Visible Category Dropdowns */}
-            {visibleCategories.map((category) => (
-              <DropdownMenu key={category.name}>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className={cn(
-                      "flex h-9 items-center gap-1.5 rounded-md px-3 text-sm font-medium transition-colors hover:bg-accent/50",
-                      category.items.some(item => pathname === item.url)
-                        ? "bg-accent text-accent-foreground"
-                        : "text-foreground/70"
-                    )}
-                  >
-                    <span>{category.name}</span>
-                    <ChevronDown className="h-3 w-3" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-56 max-h-96 overflow-y-auto">
-                  {category.items.map((item) => (
-                    <DropdownMenuItem key={item.url} asChild>
-                      <Link
-                        href={item.url}
-                        className={cn(
-                          "flex items-center gap-2",
-                          pathname === item.url && "bg-accent"
-                        )}
-                      >
-                        <span>{item.name}</span>
-                      </Link>
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ))}
+            {/* Desktop Navigation */}
+            <nav className="hidden md:flex items-center gap-1">
+              <AnimatedNavLink href="/">
+                <Home className="h-4 w-4" />
+                <span>Home</span>
+              </AnimatedNavLink>
+              <NavMenu />
+            </nav>
+          </div>
 
-            {/* More Dropdown for Overflow Categories */}
-            {overflowCategories.length > 0 && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className="flex h-9 items-center gap-1.5 rounded-md px-3 text-sm font-medium transition-colors hover:bg-accent/50 text-foreground/70"
-                  >
-                    <MoreHorizontal className="h-4 w-4" />
-                    <span className="hidden lg:block">More</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-64 max-h-96 overflow-y-auto">
-                  {overflowCategories.map((category) => (
-                    <div key={category.name} className="px-2 py-1.5">
-                      <div className="px-2 py-1 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                        {category.name}
-                      </div>
-                      {category.items.map((item) => (
-                        <DropdownMenuItem key={item.url} asChild>
-                          <Link
-                            href={item.url}
-                            className={cn(
-                              "flex items-center gap-2 px-2 py-1.5 text-sm",
-                              pathname === item.url && "bg-accent"
-                            )}
-                          >
-                            <span>{item.name}</span>
-                          </Link>
-                        </DropdownMenuItem>
-                      ))}
-                    </div>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
+          {/* Right Section: Search, Theme Toggle, Auth, and Mobile Toggle */}
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Search"
+              onClick={() => setSearchOpen(true)}
+            >
+              <Search className="h-4 w-4" />
+            </Button>
 
-            {/* Auth Links */}
-            {user ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="flex h-9 items-center gap-2 px-3">
-                    <Avatar className="h-6 w-6">
-                      <AvatarImage src={user.user_metadata?.avatar_url} />
-                      <AvatarFallback className="text-xs">
-                        {user.email?.charAt(0).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <span className="hidden lg:block text-sm">
-                      {user.user_metadata?.full_name || user.email}
-                    </span>
-                    <ChevronDown className="h-3 w-3" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuItem asChild>
-                    <Link href="/dashboard" className="flex items-center gap-2">
-                      <User className="h-4 w-4" />
-                      <span>Dashboard</span>
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/profile" className="flex items-center gap-2">
-                      <User className="h-4 w-4" />
-                      <span>Profile</span>
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem 
-                    onClick={handleSignOut}
-                    className="flex items-center gap-2 text-red-600 dark:text-red-400"
-                  >
-                    <LogOut className="h-4 w-4" />
-                    <span>Sign Out</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : (
-              <div className="flex items-center gap-2">
-                <Link href="/auth/login">
-                  <Button variant="ghost" size="sm" className="btn-enhanced hover-lift">
-                    Sign In
-                  </Button>
-                </Link>
-                <Link href="/auth/signup">
-                  <Button size="sm" className="btn-enhanced hover-lift">
-                    Sign Up
-                  </Button>
-                </Link>
-              </div>
-            )}
+            {/* Theme Toggle */}
+            <ThemeToggle />
 
-            {/* GitHub Link */}
             <a
               href="https://github.com/WilsonRIP"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex h-9 items-center gap-1.5 rounded-md px-3 text-sm font-medium transition-colors hover:bg-accent/50 text-foreground/70"
+              className="hidden sm:inline-flex"
             >
-              <Github className="h-4 w-4" />
-              <span className="sr-only">GitHub</span>
+              <Button variant="ghost" size="icon" aria-label="GitHub">
+                <Github className="h-4 w-4" />
+              </Button>
             </a>
-          </nav>
+            
+            <UserNav handleSignOutAction={handleSignOut} />
 
-          {/* Mobile Menu Button */}
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
-            className="md:hidden h-9 w-9 p-0"
-            onClick={toggleMobileMenu}
-          >
-            {mobileMenuOpen ? (
-              <X className="h-5 w-5" />
-            ) : (
-              <Menu className="h-5 w-5" />
-            )}
-          </Button>
-        </div>
-      </div>
-
-      {/* Mobile Menu */}
-      {mobileMenuOpen && (
-        <div className="md:hidden py-4 px-4 bg-background border-b shadow-lg animate-in slide-in-from-top-5 duration-200">
-          <nav className="flex flex-col space-y-3">
-            {/* Home Link */}
-            <Link
-              href="/"
-              className={cn(
-                "flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent/50",
-                pathname === "/"
-                  ? "bg-accent text-accent-foreground"
-                  : "text-foreground/70"
-              )}
-              onClick={() => setMobileMenuOpen(false)}
+            {/* Mobile Menu Toggle */}
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+              className="md:hidden"
+              onClick={toggleMobileMenu}
             >
-              <Home className="h-4 w-4" />
-              <span>Home</span>
-            </Link>
-
-            {/* Category Headers and Items */}
-            {navigationCategories.map((category) => (
-              <div key={category.name} className="space-y-2">
-                <div className="px-3 py-1 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  {category.name}
-                </div>
-                {category.items.map((item) => (
-                  <Link
-                    key={item.url}
-                    href={item.url}
-                    className={cn(
-                      "flex items-center gap-1.5 rounded-md px-6 py-2 text-sm font-medium transition-colors hover:bg-accent/50",
-                      pathname === item.url
-                        ? "bg-accent text-accent-foreground"
-                        : "text-foreground/70"
-                    )}
-                    onClick={() => setMobileMenuOpen(false)}
+              <AnimatePresence initial={false} mode="wait">
+                  <motion.div
+                    key={mobileMenuOpen ? "x" : "menu"}
+                    initial={{ rotate: 45, opacity: 0 }}
+                    animate={{ rotate: 0, opacity: 1 }}
+                    exit={{ rotate: -45, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
                   >
-                    <span>{item.name}</span>
-                  </Link>
-                ))}
-              </div>
-            ))}
-
-            {/* Auth Links */}
-            {user ? (
-              <div className="space-y-2 pt-2 border-t">
-                <div className="px-3 py-1 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  Account
-                </div>
-                <Link
-                  href="/dashboard"
-                  className="flex items-center gap-1.5 rounded-md px-6 py-2 text-sm font-medium transition-colors hover:bg-accent/50"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <User className="h-4 w-4" />
-                  <span>Dashboard</span>
-                </Link>
-                <Link
-                  href="/profile"
-                  className="flex items-center gap-1.5 rounded-md px-6 py-2 text-sm font-medium transition-colors hover:bg-accent/50"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <User className="h-4 w-4" />
-                  <span>Profile</span>
-                </Link>
-                <button
-                  onClick={() => {
-                    handleSignOut();
-                    setMobileMenuOpen(false);
-                  }}
-                  className="flex items-center gap-1.5 rounded-md px-6 py-2 text-sm font-medium transition-colors hover:bg-accent/50 text-red-600 dark:text-red-400 w-full text-left"
-                >
-                  <LogOut className="h-4 w-4" />
-                  <span>Sign Out</span>
-                </button>
-              </div>
-            ) : (
-              <div className="space-y-2 pt-2 border-t">
-                <div className="px-3 py-1 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  Account
-                </div>
-                <Link
-                  href="/auth/login"
-                  className="flex items-center gap-1.5 rounded-md px-6 py-2 text-sm font-medium transition-colors hover:bg-accent/50"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <User className="h-4 w-4" />
-                  <span>Sign In</span>
-                </Link>
-                <Link
-                  href="/auth/signup"
-                  className="flex items-center gap-1.5 rounded-md px-6 py-2 text-sm font-medium transition-colors hover:bg-accent/50"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <User className="h-4 w-4" />
-                  <span>Sign Up</span>
-                </Link>
-              </div>
-            )}
-
-            {/* GitHub Link */}
-            <a
-              href="https://github.com/WilsonRIP"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent/50 text-foreground/70"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              <Github className="h-4 w-4" />
-              <span>GitHub</span>
-            </a>
-          </nav>
+                    {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                  </motion.div>
+              </AnimatePresence>
+            </Button>
+          </div>
         </div>
-      )}
-    </header>
+
+        {/* Mobile Menu Panel */}
+        <MobileNav 
+            isOpen={mobileMenuOpen} 
+            closeMenuAction={closeMobileMenu} 
+            handleSignOutAction={handleSignOut}
+        />
+      </header>
+      <SearchDialog open={searchOpen} setOpenAction={setSearchOpen} />
+    </>
   );
 }

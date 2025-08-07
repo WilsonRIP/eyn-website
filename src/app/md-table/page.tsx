@@ -7,7 +7,10 @@ import { Textarea } from "@/src/app/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/app/components/ui/select";
 import { Input } from "@/src/app/components/ui/input";
 import { Alert, AlertDescription } from "@/src/app/components/ui/alert";
-import { Table, FileText, Copy, Download, RotateCcw, CheckCircle, AlertTriangle, Upload } from "lucide-react";
+import { Table, FileText, Download, RotateCcw, CheckCircle, AlertTriangle, Upload, Settings } from "lucide-react";
+import { Checkbox } from "@/src/app/components/ui/checkbox";
+import { Label } from "@/src/app/components/ui/label";
+import { CopyButton } from "@/src/app/components/ui/copy-button";
 
 export default function MarkdownTableGeneratorPage() {
   const [inputData, setInputData] = useState("");
@@ -17,6 +20,18 @@ export default function MarkdownTableGeneratorPage() {
   const [includeHeader, setIncludeHeader] = useState(true);
   const [alignment, setAlignment] = useState<"left" | "center" | "right">("left");
   const [error, setError] = useState("");
+  
+  // Additional table options
+  const [tableOptions, setTableOptions] = useState({
+    escapePipes: true,
+    trimWhitespace: true,
+    autoAlign: false,
+    addRowNumbers: false,
+    includeFooter: false,
+    boldHeader: true,
+    escapeSpecialChars: true,
+    preserveEmptyCells: false
+  });
 
   const sampleCSV = `Name,Age,City,Email
 John Doe,30,New York,john@example.com
@@ -275,16 +290,14 @@ Alice Brown,28,Boston,alice@example.com`;
                   </Select>
                 </div>
                 <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
+                  <Checkbox
                     id="includeHeader"
                     checked={includeHeader}
-                    onChange={(e) => setIncludeHeader(e.target.checked)}
-                    className="rounded"
+                    onCheckedChange={(checked) => setIncludeHeader(checked as boolean)}
                   />
-                  <label htmlFor="includeHeader" className="text-sm font-medium">
+                  <Label htmlFor="includeHeader" className="text-sm font-medium">
                     Include Header
-                  </label>
+                  </Label>
                 </div>
               </div>
 
@@ -344,15 +357,14 @@ Alice Brown,28,Boston,alice@example.com`;
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex gap-2">
-                <Button
-                  onClick={copyToClipboard}
+                <CopyButton
+                  text={outputTable}
                   variant="outline"
                   className="hover-lift"
                   disabled={!outputTable}
                 >
-                  <Copy className="h-4 w-4 mr-2" />
                   Copy
-                </Button>
+                </CopyButton>
                 <Button
                   onClick={downloadTable}
                   variant="outline"
@@ -382,6 +394,152 @@ Alice Brown,28,Boston,alice@example.com`;
             </CardContent>
           </Card>
         </div>
+
+        {/* Table Options Panel */}
+        <Card className="card-enhanced mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Settings className="h-5 w-5" />
+              Table Generation Options
+            </CardTitle>
+            <CardDescription>
+              Customize how your markdown table is generated
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="space-y-4">
+                <h4 className="font-semibold">Formatting Options</h4>
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      id="escapePipes" 
+                      checked={tableOptions.escapePipes}
+                      onCheckedChange={(checked) => 
+                        setTableOptions(prev => ({ ...prev, escapePipes: checked as boolean }))
+                      }
+                    />
+                    <Label htmlFor="escapePipes">Escape pipe characters</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      id="trimWhitespace" 
+                      checked={tableOptions.trimWhitespace}
+                      onCheckedChange={(checked) => 
+                        setTableOptions(prev => ({ ...prev, trimWhitespace: checked as boolean }))
+                      }
+                    />
+                    <Label htmlFor="trimWhitespace">Trim whitespace</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      id="autoAlign" 
+                      checked={tableOptions.autoAlign}
+                      onCheckedChange={(checked) => 
+                        setTableOptions(prev => ({ ...prev, autoAlign: checked as boolean }))
+                      }
+                    />
+                    <Label htmlFor="autoAlign">Auto-align columns</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      id="escapeSpecialChars" 
+                      checked={tableOptions.escapeSpecialChars}
+                      onCheckedChange={(checked) => 
+                        setTableOptions(prev => ({ ...prev, escapeSpecialChars: checked as boolean }))
+                      }
+                    />
+                    <Label htmlFor="escapeSpecialChars">Escape special characters</Label>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h4 className="font-semibold">Table Structure</h4>
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      id="addRowNumbers" 
+                      checked={tableOptions.addRowNumbers}
+                      onCheckedChange={(checked) => 
+                        setTableOptions(prev => ({ ...prev, addRowNumbers: checked as boolean }))
+                      }
+                    />
+                    <Label htmlFor="addRowNumbers">Add row numbers</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      id="includeFooter" 
+                      checked={tableOptions.includeFooter}
+                      onCheckedChange={(checked) => 
+                        setTableOptions(prev => ({ ...prev, includeFooter: checked as boolean }))
+                      }
+                    />
+                    <Label htmlFor="includeFooter">Include footer row</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      id="boldHeader" 
+                      checked={tableOptions.boldHeader}
+                      onCheckedChange={(checked) => 
+                        setTableOptions(prev => ({ ...prev, boldHeader: checked as boolean }))
+                      }
+                    />
+                    <Label htmlFor="boldHeader">Bold header text</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      id="preserveEmptyCells" 
+                      checked={tableOptions.preserveEmptyCells}
+                      onCheckedChange={(checked) => 
+                        setTableOptions(prev => ({ ...prev, preserveEmptyCells: checked as boolean }))
+                      }
+                    />
+                    <Label htmlFor="preserveEmptyCells">Preserve empty cells</Label>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h4 className="font-semibold">Export Options</h4>
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      id="includeTableCaption" 
+                      checked={false}
+                      onCheckedChange={() => {}}
+                    />
+                    <Label htmlFor="includeTableCaption">Include table caption</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      id="addTableClass" 
+                      checked={false}
+                      onCheckedChange={() => {}}
+                    />
+                    <Label htmlFor="addTableClass">Add CSS classes</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      id="generateHTML" 
+                      checked={false}
+                      onCheckedChange={() => {}}
+                    />
+                    <Label htmlFor="generateHTML">Generate HTML table</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      id="includeMetadata" 
+                      checked={false}
+                      onCheckedChange={() => {}}
+                    />
+                    <Label htmlFor="includeMetadata">Include metadata</Label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         <Card className="card-enhanced">
           <CardHeader>

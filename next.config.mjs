@@ -21,6 +21,26 @@ const nextConfig = {
       layers: true,
     };
 
+    // Handle Tesseract.js worker files
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        path: false,
+      };
+    }
+
+    // Ignore React Native modules that might be pulled in by dependencies
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      'react-native-fs': false,
+      'react-native': false,
+    };
+
+    // Ignore problematic modules
+    config.externals = config.externals || [];
+    config.externals.push('react-native-fs');
+
     return config;
   },
   // Add headers for cross-origin isolation to support WebAssembly

@@ -6,7 +6,11 @@ import { Button } from "@/src/app/components/ui/button";
 import { Textarea } from "@/src/app/components/ui/textarea";
 import { Alert, AlertDescription } from "@/src/app/components/ui/alert";
 import { Progress } from "@/src/app/components/ui/progress";
-import { Upload, FileText, Copy, Download, RotateCcw, CheckCircle, XCircle, AlertTriangle, Eye, EyeOff } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/app/components/ui/select";
+import { Upload, FileText, Copy, Download, RotateCcw, CheckCircle, XCircle, AlertTriangle, Eye, EyeOff, Languages } from "lucide-react";
+import { SUPPORTED_LANGUAGES, validateImageFile } from "@/src/lib/ocr";
+
+const LANGUAGE_OPTIONS = SUPPORTED_LANGUAGES;
 
 export default function OCRPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -15,17 +19,22 @@ export default function OCRPage() {
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState("");
   const [showPreview, setShowPreview] = useState(false);
+  const [selectedLanguage, setSelectedLanguage] = useState("eng");
+  const [confidence, setConfidence] = useState<number | null>(null);
+  const [processingStage, setProcessingStage] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      if (file.type.startsWith('image/')) {
+      const validation = validateImageFile(file);
+      if (validation.valid) {
         setSelectedFile(file);
         setError("");
         setExtractedText("");
+        setConfidence(null);
       } else {
-        setError("Please select a valid image file (JPEG, PNG, GIF, etc.)");
+        setError(validation.error || "Please select a valid image file");
       }
     }
   };
@@ -39,51 +48,44 @@ export default function OCRPage() {
     setIsProcessing(true);
     setProgress(0);
     setError("");
+    setProcessingStage("Initializing OCR engine...");
 
     try {
-      // Simulate OCR processing with progress updates
-      const simulateProgress = () => {
-        const interval = setInterval(() => {
-          setProgress(prev => {
-            if (prev >= 90) {
-              clearInterval(interval);
-              return 90;
-            }
-            return prev + 10;
-          });
-        }, 200);
-        return interval;
-      };
+      // Create image URL
+      const imageUrl = URL.createObjectURL(selectedFile);
 
-      const progressInterval = simulateProgress();
+      // Try Tesseract.js with minimal configuration
+      setProcessingStage("Loading OCR engine...");
+      
+      // Dynamic import to avoid SSR issues
+      const Tesseract = (await import('tesseract.js')).default;
+      
+      setProcessingStage("Processing image...");
+      setProgress(50);
+      
+      const result = await Tesseract.recognize(imageUrl, selectedLanguage);
 
-      // Create FormData for file upload
-      const formData = new FormData();
-      formData.append('image', selectedFile);
+      // Clean up
+      URL.revokeObjectURL(imageUrl);
 
-      // Simulate API call to OCR service
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      // For demo purposes, we'll simulate extracted text
-      // In a real implementation, you would call an OCR API like Tesseract.js or a cloud service
-      const mockExtractedText = `Sample extracted text from image:
-
-This is a demonstration of OCR (Optical Character Recognition) functionality.
-The text would be extracted from the uploaded image using advanced image processing algorithms.
-
-Key features:
-• High accuracy text recognition
-• Support for multiple languages
-• Handles various image formats
-• Preserves text formatting
-
-Note: This is a simulated result for demonstration purposes.`;
-
-      setExtractedText(mockExtractedText);
+      setExtractedText(result.data.text);
+      setConfidence(result.data.confidence);
       setProgress(100);
-      clearInterval(progressInterval);
+      setProcessingStage("OCR completed successfully!");
+
     } catch (error) {
-      setError("Failed to extract text from image. Please try again.");
+      console.error('OCR Error:', error);
+      let errorMessage = "Failed to extract text from image. Please try again.";
+      
+      if (error instanceof Error) {
+        if (error.message.includes('Function object could not be cloned')) {
+          errorMessage = "OCR engine compatibility issue. Please try with a different browser or image.";
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
+      setError(errorMessage);
     } finally {
       setIsProcessing(false);
     }
@@ -114,6 +116,8 @@ Note: This is a simulated result for demonstration purposes.`;
     setExtractedText("");
     setError("");
     setProgress(0);
+    setConfidence(null);
+    setProcessingStage("");
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -129,7 +133,7 @@ Note: This is a simulated result for demonstration purposes.`;
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold mb-4 animate-slide-in-left">Image-to-Text OCR</h1>
           <p className="text-muted-foreground text-lg animate-slide-in-right">
-            Extract plain-text from uploaded images using optical character recognition
+            Extract plain-text from uploaded images using advanced optical character recognition
           </p>
         </div>
 
@@ -146,25 +150,46 @@ Note: This is a simulated result for demonstration purposes.`;
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center">
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileSelect}
-                  className="hidden"
-                />
-                <Button
-                  onClick={() => fileInputRef.current?.click()}
-                  variant="outline"
-                  className="w-full hover-lift"
-                >
-                  <Upload className="h-4 w-4 mr-2" />
-                  Choose Image File
-                </Button>
-                <p className="text-sm text-muted-foreground mt-2">
-                  Supports JPEG, PNG, GIF, BMP, TIFF
-                </p>
+              <div className="space-y-4">
+                <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileSelect}
+                    className="hidden"
+                  />
+                  <Button
+                    onClick={() => fileInputRef.current?.click()}
+                    variant="outline"
+                    className="w-full hover-lift"
+                  >
+                    <Upload className="h-4 w-4 mr-2" />
+                    Choose Image File
+                  </Button>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Supports JPEG, PNG, GIF, BMP, TIFF
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    <Languages className="h-4 w-4" />
+                    Language
+                  </label>
+                  <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select language" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {LANGUAGE_OPTIONS.map((lang) => (
+                        <SelectItem key={lang.code} value={lang.code}>
+                          {lang.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
               {selectedFile && (
@@ -215,8 +240,8 @@ Note: This is a simulated result for demonstration purposes.`;
                   {isProcessing && (
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
-                        <span>Processing image...</span>
-                        <span>{progress}%</span>
+                        <span>{processingStage}</span>
+                        <span>{progress.toFixed(1)}%</span>
                       </div>
                       <Progress value={progress} className="w-full" />
                     </div>
@@ -240,6 +265,11 @@ Note: This is a simulated result for demonstration purposes.`;
               <CardTitle className="flex items-center gap-2">
                 <FileText className="h-5 w-5" />
                 <span>Extracted Text</span>
+                {confidence !== null && (
+                  <span className="text-sm font-normal text-muted-foreground">
+                    ({confidence.toFixed(1)}% confidence)
+                  </span>
+                )}
               </CardTitle>
               <CardDescription>
                 The extracted text will appear here
@@ -304,6 +334,14 @@ Note: This is a simulated result for demonstration purposes.`;
                   Individual characters are recognized using machine learning models trained on millions of text samples.
                 </p>
               </div>
+            </div>
+            
+            <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-950 rounded-lg">
+              <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">Browser Compatibility</h4>
+              <p className="text-sm text-blue-800 dark:text-blue-200">
+                This OCR tool works best in modern browsers (Chrome, Firefox, Safari, Edge). 
+                If you encounter issues, try refreshing the page or using a different browser.
+              </p>
             </div>
           </CardContent>
         </Card>

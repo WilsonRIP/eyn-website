@@ -10,7 +10,8 @@ import { Slider } from "@/src/app/components/ui/slider";
 import { Switch } from "@/src/app/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/src/app/components/ui/tabs";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/src/app/components/ui/accordion";
-import { Copy, Eye, EyeOff, RefreshCw, Shield, Zap, Info, History, Trash2, Clock, Loader2 } from "lucide-react";
+import { Eye, EyeOff, RefreshCw, Shield, Zap, Info, History, Trash2, Clock, Loader2 } from "lucide-react";
+import { CopyButton } from "@/src/app/components/ui/copy-button";
 import { toast } from "react-hot-toast";
 import { useAuth } from "@/src/contexts/AuthContext";
 import { databaseService } from "@/src/lib/database-service";
@@ -203,7 +204,7 @@ export default function PasswordGeneratorPage() {
     if (user) {
       saveUserPreferences();
     }
-  }, [settings, wordlist, history, user]);
+  }, [settings, wordlist, user]);
 
   // Auto-generate on mount and settings change
   useEffect(() => {
@@ -250,12 +251,17 @@ export default function PasswordGeneratorPage() {
 
   // --- STRENGTH CALCULATION ---
   useEffect(() => {
-    if (password) {
-      const passwordEntropy = calculateEntropy(password);
+    if (password && wordlist.length > 0) {
+      const passwordEntropy = calculateEntropy(settings, wordlist.length);
+      setEntropy(passwordEntropy);
+      setCrackTime(estimateCrackTime(passwordEntropy));
+    } else if (password && settings.passwordType === 'random') {
+      // For random passwords, we can calculate entropy without wordlist
+      const passwordEntropy = calculateEntropy(settings, 0);
       setEntropy(passwordEntropy);
       setCrackTime(estimateCrackTime(passwordEntropy));
     }
-  }, [password]);
+  }, [password, settings, wordlist.length]);
 
   const strengthInfo = getStrengthInfo(entropy);
 
@@ -302,14 +308,12 @@ export default function PasswordGeneratorPage() {
                     >
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </Button>
-                    <Button
+                    <CopyButton
+                      text={password}
                       variant="ghost"
                       size="sm"
-                      onClick={() => copyToClipboard(password)}
                       className={`h-8 w-8 p-0 ${copyAnimation ? 'scale-110' : ''}`}
-                    >
-                      <Copy className="h-4 w-4" />
-                    </Button>
+                    />
                   </div>
                 </div>
 
@@ -528,15 +532,15 @@ export default function PasswordGeneratorPage() {
                   <div className="space-y-2">
                     {history.slice(0, 5).map((pwd, index) => (
                       <div key={index} className="flex items-center justify-between p-2 bg-muted rounded text-sm">
-                        <span className="font-mono">{pwd}</span>
-                        <Button
+                        <span className="font-mono truncate flex-1 mr-2" title={pwd}>
+                          {pwd}
+                        </span>
+                        <CopyButton
+                          text={pwd === '••••••••' ? password : pwd}
                           variant="ghost"
                           size="sm"
-                          onClick={() => copyToClipboard(pwd === '••••••••' ? password : pwd)}
-                          className="h-6 w-6 p-0"
-                        >
-                          <Copy className="h-3 w-3" />
-                        </Button>
+                          className="h-6 w-6 p-0 shrink-0"
+                        />
                       </div>
                     ))}
                     <Button

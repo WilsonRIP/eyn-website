@@ -21,6 +21,15 @@ import {
   Calculator,
   FileCode,
   FileSpreadsheet,
+  MessageSquare,
+  Timer,
+  Calendar,
+  Table,
+  DollarSign,
+  Bug,
+  Webhook,
+  Globe,
+  FileText as FileTextIcon,
 } from "lucide-react";
 import {
   Card,
@@ -86,6 +95,22 @@ const IconComponent = ({
       return <FileCode {...iconProps} />;
     case "FileSpreadsheet":
       return <FileSpreadsheet {...iconProps} />;
+    case "MessageSquare":
+      return <MessageSquare {...iconProps} />;
+    case "Timer":
+      return <Timer {...iconProps} />;
+    case "Calendar":
+      return <Calendar {...iconProps} />;
+    case "Table":
+      return <Table {...iconProps} />;
+    case "DollarSign":
+      return <DollarSign {...iconProps} />;
+    case "Bug":
+      return <Bug {...iconProps} />;
+    case "Webhook":
+      return <Webhook {...iconProps} />;
+    case "Globe":
+      return <Globe {...iconProps} />;
     default:
       return <Download {...iconProps} />;
   }

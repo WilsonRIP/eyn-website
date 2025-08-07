@@ -6,7 +6,10 @@ import { Button } from "@/src/app/components/ui/button";
 import { Textarea } from "@/src/app/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/src/app/components/ui/tabs";
 import { Badge } from "@/src/app/components/ui/badge";
-import { Copy, Download, RotateCcw, Eye, Edit, FileText } from "lucide-react";
+import { Download, RotateCcw, Eye, Edit, FileText, Settings } from "lucide-react";
+import { Checkbox } from "@/src/app/components/ui/checkbox";
+import { Label } from "@/src/app/components/ui/label";
+import { CopyButton } from "@/src/app/components/ui/copy-button";
 
 export default function MarkdownPage() {
   const [markdown, setMarkdown] = useState("");
@@ -15,6 +18,18 @@ export default function MarkdownPage() {
   const [wordCount, setWordCount] = useState(0);
   const [charCount, setCharCount] = useState(0);
   const [lineCount, setLineCount] = useState(0);
+  
+  // Settings state
+  const [settings, setSettings] = useState({
+    autoSave: false,
+    syntaxHighlighting: true,
+    lineNumbers: false,
+    wordWrap: true,
+    spellCheck: false,
+    darkMode: false,
+    includeCSS: true,
+    includeMeta: true
+  });
 
   // Sample markdown content
   const sampleMarkdown = `# Welcome to Markdown Previewer
@@ -258,6 +273,15 @@ ${html}
                 <Badge variant="secondary">{charCount} chars</Badge>
                 <Badge variant="secondary">{lineCount} lines</Badge>
               </div>
+              <Button
+                onClick={() => setViewMode(settings.darkMode ? "split" : "preview")}
+                variant="outline"
+                size="sm"
+                className="hover-lift"
+              >
+                <Settings className="h-4 w-4 mr-2" />
+                Settings
+              </Button>
             </div>
           </div>
         </div>
@@ -311,15 +335,14 @@ ${html}
                 <CardTitle className="flex items-center justify-between">
                   <span>Preview</span>
                   <div className="flex gap-2">
-                    <Button
-                      onClick={() => copyToClipboard(html)}
+                    <CopyButton
+                      text={html}
                       variant="outline"
                       size="sm"
                       className="hover-lift"
                     >
-                      <Copy className="h-4 w-4 mr-2" />
                       Copy HTML
-                    </Button>
+                    </CopyButton>
                     <Button
                       onClick={downloadHTML}
                       variant="outline"
@@ -344,6 +367,120 @@ ${html}
             </Card>
           )}
         </div>
+
+        {/* Settings Panel */}
+        <Card className="card-enhanced mt-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Settings className="h-5 w-5" />
+              Editor Settings
+            </CardTitle>
+            <CardDescription>
+              Customize your markdown editing experience
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="space-y-4">
+                <h4 className="font-semibold">Editor Options</h4>
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      id="autoSave" 
+                      checked={settings.autoSave}
+                      onCheckedChange={(checked) => 
+                        setSettings(prev => ({ ...prev, autoSave: checked as boolean }))
+                      }
+                    />
+                    <Label htmlFor="autoSave">Auto-save to localStorage</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      id="syntaxHighlighting" 
+                      checked={settings.syntaxHighlighting}
+                      onCheckedChange={(checked) => 
+                        setSettings(prev => ({ ...prev, syntaxHighlighting: checked as boolean }))
+                      }
+                    />
+                    <Label htmlFor="syntaxHighlighting">Syntax highlighting</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      id="lineNumbers" 
+                      checked={settings.lineNumbers}
+                      onCheckedChange={(checked) => 
+                        setSettings(prev => ({ ...prev, lineNumbers: checked as boolean }))
+                      }
+                    />
+                    <Label htmlFor="lineNumbers">Show line numbers</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      id="wordWrap" 
+                      checked={settings.wordWrap}
+                      onCheckedChange={(checked) => 
+                        setSettings(prev => ({ ...prev, wordWrap: checked as boolean }))
+                      }
+                    />
+                    <Label htmlFor="wordWrap">Word wrap</Label>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h4 className="font-semibold">Writing Tools</h4>
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      id="spellCheck" 
+                      checked={settings.spellCheck}
+                      onCheckedChange={(checked) => 
+                        setSettings(prev => ({ ...prev, spellCheck: checked as boolean }))
+                      }
+                    />
+                    <Label htmlFor="spellCheck">Spell check</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      id="darkMode" 
+                      checked={settings.darkMode}
+                      onCheckedChange={(checked) => 
+                        setSettings(prev => ({ ...prev, darkMode: checked as boolean }))
+                      }
+                    />
+                    <Label htmlFor="darkMode">Dark mode preview</Label>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h4 className="font-semibold">Export Options</h4>
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      id="includeCSS" 
+                      checked={settings.includeCSS}
+                      onCheckedChange={(checked) => 
+                        setSettings(prev => ({ ...prev, includeCSS: checked as boolean }))
+                      }
+                    />
+                    <Label htmlFor="includeCSS">Include CSS styles</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      id="includeMeta" 
+                      checked={settings.includeMeta}
+                      onCheckedChange={(checked) => 
+                        setSettings(prev => ({ ...prev, includeMeta: checked as boolean }))
+                      }
+                    />
+                    <Label htmlFor="includeMeta">Include meta tags</Label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         <Card className="card-enhanced mt-6">
           <CardHeader>

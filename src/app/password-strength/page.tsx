@@ -173,30 +173,45 @@ export default function PasswordStrengthPage() {
     }
   };
 
-  const generateStrongPassword = () => {
-    const lowercase = 'abcdefghijklmnopqrstuvwxyz';
-    const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    const numbers = '0123456789';
-    const symbols = '!@#$%^&*()_+-=[]{}|;:,.<>?';
-    
+  const generatePassword = () => {
     let generated = '';
     
-    // Ensure at least one of each type
-    generated += lowercase[Math.floor(Math.random() * lowercase.length)];
-    generated += uppercase[Math.floor(Math.random() * uppercase.length)];
-    generated += numbers[Math.floor(Math.random() * numbers.length)];
-    generated += symbols[Math.floor(Math.random() * symbols.length)];
+    // Use crypto.getRandomValues for secure random numbers
+    const randomValues = new Uint8Array(length);
+    crypto.getRandomValues(randomValues);
     
-    // Fill the rest randomly
-    const allChars = lowercase + uppercase + numbers + symbols;
-    for (let i = 4; i < 16; i++) {
-      generated += allChars[Math.floor(Math.random() * allChars.length)];
+    // Ensure at least one character from each selected type
+    if (includeLowercase) {
+      generated += lowercase[randomValues[0] % lowercase.length];
+    }
+    if (includeUppercase) {
+      generated += uppercase[randomValues[1] % uppercase.length];
+    }
+    if (includeNumbers) {
+      generated += numbers[randomValues[2] % numbers.length];
+    }
+    if (includeSymbols) {
+      generated += symbols[randomValues[3] % symbols.length];
     }
     
-    // Shuffle the password
-    generated = generated.split('').sort(() => Math.random() - 0.5).join('');
+    // Fill the rest with random characters
+    const allChars = (includeLowercase ? lowercase : '') + 
+                    (includeUppercase ? uppercase : '') + 
+                    (includeNumbers ? numbers : '') + 
+                    (includeSymbols ? symbols : '');
     
-    setPassword(generated);
+    for (let i = generated.length; i < length; i++) {
+      generated += allChars[randomValues[i] % allChars.length];
+    }
+    
+    // Shuffle the password using Fisher-Yates algorithm with crypto.getRandomValues
+    const chars = generated.split('');
+    for (let i = chars.length - 1; i > 0; i--) {
+      const j = randomValues[i] % (i + 1);
+      [chars[i], chars[j]] = [chars[j], chars[i]];
+    }
+    
+    setPassword(chars.join(''));
   };
 
   const copyPassword = () => {
@@ -255,7 +270,7 @@ export default function PasswordStrengthPage() {
 
               <div className="flex flex-wrap gap-2">
                 <Button
-                  onClick={generateStrongPassword}
+                  onClick={generatePassword}
                   className="btn-enhanced hover-lift"
                 >
                   <Zap className="h-4 w-4 mr-2" />

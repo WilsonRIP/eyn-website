@@ -6,7 +6,8 @@ import { Button } from "@/src/app/components/ui/button";
 import { Input } from "@/src/app/components/ui/input";
 import { Alert, AlertDescription } from "@/src/app/components/ui/alert";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/app/components/ui/select";
-import { Copy, RotateCcw, CheckCircle, RefreshCw, Key, Hash } from "lucide-react";
+import { RotateCcw, CheckCircle, RefreshCw, Key, Hash, Download } from "lucide-react";
+import { CopyButton } from "@/src/app/components/ui/copy-button";
 
 export default function UUIDGeneratorPage() {
   const [uuidVersion, setUuidVersion] = useState<"v1" | "v4" | "v5">("v4");
@@ -32,8 +33,13 @@ export default function UUIDGeneratorPage() {
   const generateUUIDv1 = (): string => {
     // Simplified UUID v1 generation (timestamp-based)
     const timestamp = Date.now();
-    const clockSeq = Math.floor(Math.random() * 0x3fff) + 0x8000;
-    const nodeId = Math.floor(Math.random() * 0xffffffffffff);
+    
+    // Use crypto.getRandomValues for secure random numbers
+    const randomValues = new Uint32Array(3);
+    crypto.getRandomValues(randomValues);
+    
+    const clockSeq = (randomValues[0] % 0x3fff) + 0x8000;
+    const nodeId = randomValues[1] * 0x100000000 + randomValues[2];
     
     const timeLow = (timestamp & 0xffffffff).toString(16).padStart(8, '0');
     const timeMid = ((timestamp >> 32) & 0xffff).toString(16).padStart(4, '0');
@@ -46,9 +52,13 @@ export default function UUIDGeneratorPage() {
   };
 
   const generateUUIDv4 = (): string => {
-    // Standard UUID v4 generation (random)
+    // Standard UUID v4 generation (random) using crypto.getRandomValues
     const hexDigits = '0123456789abcdef';
     let uuid = '';
+    
+    // Generate all random bytes at once for better performance
+    const randomValues = new Uint8Array(16);
+    crypto.getRandomValues(randomValues);
     
     for (let i = 0; i < 36; i++) {
       if (i === 8 || i === 13 || i === 18 || i === 23) {
@@ -56,9 +66,13 @@ export default function UUIDGeneratorPage() {
       } else if (i === 14) {
         uuid += '4'; // Version 4
       } else if (i === 19) {
-        uuid += hexDigits[(Math.random() * 4) | 8]; // Variant
+        uuid += hexDigits[(randomValues[Math.floor(i/2)] & 0x3) | 0x8]; // Variant
       } else {
-        uuid += hexDigits[Math.floor(Math.random() * 16)];
+        const byteIndex = Math.floor(i/2);
+        const isEven = i % 2 === 0;
+        const byte = randomValues[byteIndex];
+        const hexIndex = isEven ? (byte >> 4) : (byte & 0xf);
+        uuid += hexDigits[hexIndex];
       }
     }
     
@@ -76,12 +90,16 @@ export default function UUIDGeneratorPage() {
       hash = hash & hash; // Convert to 32-bit integer
     }
     
+    // Use crypto.getRandomValues for secure random numbers
+    const randomValues = new Uint32Array(4);
+    crypto.getRandomValues(randomValues);
+    
     // Convert hash to UUID format
     const hashHex = Math.abs(hash).toString(16).padStart(8, '0');
-    const random1 = Math.floor(Math.random() * 0xffff).toString(16).padStart(4, '0');
-    const random2 = Math.floor(Math.random() * 0xffff).toString(16).padStart(4, '0');
-    const random3 = Math.floor(Math.random() * 0xffff).toString(16).padStart(4, '0');
-    const random4 = Math.floor(Math.random() * 0xffffffff).toString(16).padStart(8, '0');
+    const random1 = (randomValues[0] % 0xffff).toString(16).padStart(4, '0');
+    const random2 = (randomValues[1] % 0xffff).toString(16).padStart(4, '0');
+    const random3 = (randomValues[2] % 0xffff).toString(16).padStart(4, '0');
+    const random4 = randomValues[3].toString(16).padStart(8, '0');
     
     return `${hashHex}-${random1}-5${random2.slice(1)}-${random3}-${random4}`;
   };
@@ -103,6 +121,21 @@ export default function UUIDGeneratorPage() {
   const copyAllToClipboard = () => {
     const allUUIDs = generatedUUIDs.join('\n');
     navigator.clipboard.writeText(allUUIDs);
+  };
+
+  const downloadToFile = () => {
+    if (generatedUUIDs.length === 0) return;
+    
+    const content = generatedUUIDs.join('\n');
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `uuids-${uuidVersion}-${new Date().toISOString().split('T')[0]}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   const clearAll = () => {
@@ -156,11 +189,12 @@ export default function UUIDGeneratorPage() {
                 <Input
                   type="number"
                   min="1"
-                  max="100"
+                  max="2000"
                   value={quantity}
-                  onChange={(e) => setQuantity(Math.min(100, Math.max(1, parseInt(e.target.value) || 1)))}
+                  onChange={(e) => setQuantity(Math.min(2000, Math.max(1, parseInt(e.target.value) || 1)))}
                   className="w-full"
                 />
+                <p className="text-xs text-muted-foreground">Min: 1, Max: 2000</p>
               </div>
 
               {uuidVersion === "v5" && (
@@ -246,15 +280,25 @@ export default function UUIDGeneratorPage() {
                   <span className="text-sm text-muted-foreground">
                     Version: {uuidVersion.toUpperCase()}
                   </span>
-                  <Button
-                    onClick={copyAllToClipboard}
-                    variant="outline"
-                    size="sm"
-                    className="hover-lift"
-                  >
-                    <Copy className="h-4 w-4 mr-2" />
-                    Copy All
-                  </Button>
+                  <div className="flex gap-2">
+                    <CopyButton
+                      text={generatedUUIDs.join('\n')}
+                      variant="outline"
+                      size="sm"
+                      className="hover-lift"
+                    >
+                      Copy All
+                    </CopyButton>
+                    <Button
+                      onClick={downloadToFile}
+                      variant="outline"
+                      size="sm"
+                      className="hover-lift"
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Download
+                    </Button>
+                  </div>
                 </div>
               )}
 
@@ -266,18 +310,12 @@ export default function UUIDGeneratorPage() {
                       className="flex items-center justify-between p-3 bg-muted/50 rounded-lg hover:bg-muted/70 transition-colors"
                     >
                       <code className="font-mono text-sm break-all">{uuid}</code>
-                      <Button
-                        onClick={() => copyToClipboard(uuid, index)}
+                      <CopyButton
+                        text={uuid}
                         variant="ghost"
                         size="sm"
                         className="ml-2 shrink-0"
-                      >
-                        {copiedIndex === index ? (
-                          <CheckCircle className="h-4 w-4 text-green-500" />
-                        ) : (
-                          <Copy className="h-4 w-4" />
-                        )}
-                      </Button>
+                      />
                     </div>
                   ))
                 ) : (
